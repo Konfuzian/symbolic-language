@@ -1,0 +1,295 @@
+// AWS Infrastructure Configuration
+
+{ $project acme
+, $env production
+, $region us-east-1
+, $az-count 3
+}
+
+{ :vpc
+  { :name $project-$env-vpc
+  , :cidr 10.0.0.0/16
+  , :enable-dns-hostnames true
+  , :enable-dns-support true
+  , :tags
+    { :Environment $env
+    , :Project $project
+    , :ManagedBy terraform
+    }
+  }
+
+, :subnets
+  { :public
+    [ { :name $project-$env-public-1a
+      , :cidr 10.0.1.0/24
+      , :az $region-a
+      , :map-public-ip true
+      }
+    , { :name $project-$env-public-1b
+      , :cidr 10.0.2.0/24
+      , :az $region-b
+      , :map-public-ip true
+      }
+    , { :name $project-$env-public-1c
+      , :cidr 10.0.3.0/24
+      , :az $region-c
+      , :map-public-ip true
+      }
+    ]
+  , :private
+    [ { :name $project-$env-private-1a
+      , :cidr 10.0.11.0/24
+      , :az $region-a
+      }
+    , { :name $project-$env-private-1b
+      , :cidr 10.0.12.0/24
+      , :az $region-b
+      }
+    , { :name $project-$env-private-1c
+      , :cidr 10.0.13.0/24
+      , :az $region-c
+      }
+    ]
+  , :database
+    [ { :name $project-$env-db-1a
+      , :cidr 10.0.21.0/24
+      , :az $region-a
+      }
+    , { :name $project-$env-db-1b
+      , :cidr 10.0.22.0/24
+      , :az $region-b
+      }
+    ]
+  }
+
+, :security-groups
+  { :alb
+    { :name $project-$env-alb-sg
+    , :description Security group for Application Load Balancer
+    , :ingress
+      [ { :from 443
+        , :to 443
+        , :protocol tcp
+        , :cidr 0.0.0.0/0
+        , :description HTTPS from anywhere
+        }
+      , { :from 80
+        , :to 80
+        , :protocol tcp
+        , :cidr 0.0.0.0/0
+        , :description HTTP redirect
+        }
+      ]
+    , :egress
+      [ { :from 0
+        , :to 0
+        , :protocol -1
+        , :cidr 0.0.0.0/0
+        }
+      ]
+    }
+  , :app
+    { :name $project-$env-app-sg
+    , :description Security group for application servers
+    , :ingress
+      [ { :from 8080
+        , :to 8080
+        , :protocol tcp
+        , :source-sg alb
+        , :description Traffic from ALB
+        }
+      , { :from 22
+        , :to 22
+        , :protocol tcp
+        , :source-sg bastion
+        , :description SSH from bastion
+        }
+      ]
+    }
+  , :database
+    { :name $project-$env-db-sg
+    , :description Security group for RDS instances
+    , :ingress
+      [ { :from 5432
+        , :to 5432
+        , :protocol tcp
+        , :source-sg app
+        , :description PostgreSQL from app servers
+        }
+      ]
+    }
+  }
+
+, :rds
+  { :name $project-$env-postgres
+  , :engine postgres
+  , :engine-version 16.1
+  , :instance-class db.r6g.xlarge
+  , :allocated-storage 100
+  , :max-allocated-storage 500
+  , :storage-type gp3
+  , :storage-encrypted true
+  , :multi-az true
+  , :db-name $project
+  , :username $project_admin
+  , :port 5432
+  , :backup
+    { :retention-period 30
+    , :window 03:00-04:00
+    , :copy-tags-to-snapshot true
+    }
+  , :maintenance
+    { :window Sun:04:00-Sun:05:00
+    , :auto-minor-version-upgrade true
+    }
+  , :monitoring
+    { :interval 60
+    , :enhanced true
+    }
+  , :performance-insights
+    { :enabled true
+    , :retention 7
+    }
+  , :parameters
+    { :shared_buffers {DBInstanceClassMemory/4}
+    , :max_connections 500
+    , :log_statement all
+    , :log_min_duration_statement 1000
+    }
+  }
+
+, :elasticache
+  { :name $project-$env-redis
+  , :engine redis
+  , :engine-version 7.0
+  , :node-type cache.r6g.large
+  , :num-cache-nodes 3
+  , :port 6379
+  , :parameter-group
+    { :family redis7
+    , :parameters
+      { :maxmemory-policy allkeys-lru
+      , :notify-keyspace-events Ex
+      }
+    }
+  , :automatic-failover true
+  , :multi-az true
+  , :at-rest-encryption true
+  , :transit-encryption true
+  , :snapshot
+    { :retention-limit 7
+    , :window 02:00-03:00
+    }
+  }
+
+, :alb
+  { :name $project-$env-alb
+  , :internal false
+  , :load-balancer-type application
+  , :security-groups
+    [ alb
+    ]
+  , :subnets
+    [ public-1a
+    , public-1b
+    , public-1c
+    ]
+  , :access-logs
+    { :enabled true
+    , :bucket $project-$env-alb-logs
+    , :prefix alb
+    }
+  , :listeners
+    [ { :port 443
+      , :protocol HTTPS
+      , :ssl-policy ELBSecurityPolicy-TLS13-1-2-2021-06
+      , :certificate-arn arn:aws:acm:$region:123456789:certificate/abc123
+      , :default-action
+        { :type forward
+        , :target-group app
+        }
+      }
+    , { :port 80
+      , :protocol HTTP
+      , :default-action
+        { :type redirect
+        , :redirect
+          { :port 443
+          , :protocol HTTPS
+          , :status-code HTTP_301
+          }
+        }
+      }
+    ]
+  }
+
+, :ecs
+  { :cluster
+    { :name $project-$env
+    , :capacity-providers
+      [ FARGATE
+      , FARGATE_SPOT
+      ]
+    , :default-capacity-provider-strategy
+      [ { :capacity-provider FARGATE
+        , :weight 1
+        , :base 1
+        }
+      , { :capacity-provider FARGATE_SPOT
+        , :weight 4
+        }
+      ]
+    , :settings
+      { :containerInsights enabled
+      }
+    }
+  , :service
+    { :name $project-$env-api
+    , :desired-count 3
+    , :launch-type FARGATE
+    , :platform-version 1.4.0
+    , :task-definition $project-$env-api
+    , :network-configuration
+      { :subnets
+        [ private-1a
+        , private-1b
+        , private-1c
+        ]
+      , :security-groups
+        [ app
+        ]
+      , :assign-public-ip false
+      }
+    , :load-balancers
+      [ { :target-group-arn app
+        , :container-name api
+        , :container-port 8080
+        }
+      ]
+    , :deployment-configuration
+      { :maximum-percent 200
+      , :minimum-healthy-percent 100
+      , :deployment-circuit-breaker
+        { :enable true
+        , :rollback true
+        }
+      }
+    , :auto-scaling
+      { :min-capacity 3
+      , :max-capacity 20
+      , :target-tracking
+        [ { :metric ECSServiceAverageCPUUtilization
+          , :target-value 70
+          , :scale-in-cooldown 300
+          , :scale-out-cooldown 60
+          }
+        , { :metric ECSServiceAverageMemoryUtilization
+          , :target-value 80
+          , :scale-in-cooldown 300
+          , :scale-out-cooldown 60
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYM Format - A Data Format for Humans</title>
+  <meta name="description" content="SYM is a human-friendly data format. Less syntax, more clarity. No quotes needed, inline commas are safe, clear nesting with brackets.">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    code, pre { font-family: 'Fira Code', monospace; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script>
+const { useState } = React;
+
+const colors = {
+  comment: '#6a9955',
+  variable: '#c586c0',
+  key: '#9cdcfe',
+  symbol: '#4ec9b0',
+  number: '#b5cea8',
+  boolean: '#569cd6',
+  null: '#569cd6',
+  bracket: '#ffd700',
+  escape: '#d7ba7d',
+  string: '#ce9178',
+  default: '#d4d4d4',
+};
+
+function tokenize(code) {
+  const tokens = [];
+  let i = 0;
+  while (i < code.length) {
+    if (code.slice(i, i + 2) === '/*') {
+      const end = code.indexOf('*/', i + 2);
+      const endIdx = end === -1 ? code.length : end + 2;
+      tokens.push({ type: 'comment', value: code.slice(i, endIdx) });
+      i = endIdx;
+      continue;
+    }
+    if (code.slice(i, i + 2) === '//') {
+      const prevChar = i > 0 ? code[i - 1] : '\n';
+      if (prevChar === '\n' || prevChar === ' ' || prevChar === '\t' || i === 0) {
+        const end = code.indexOf('\n', i);
+        tokens.push({ type: 'comment', value: code.slice(i, end === -1 ? code.length : end) });
+        i = end === -1 ? code.length : end;
+        continue;
+      }
+    }
+    if (code[i] === '\n') { tokens.push({ type: 'newline', value: '\n' }); i++; continue; }
+    if ('{['.includes(code[i])) { tokens.push({ type: 'bracket', value: code[i] }); i++; continue; }
+    if ('}]'.includes(code[i])) { tokens.push({ type: 'bracket', value: code[i] }); i++; continue; }
+    if (code[i] === ',') { tokens.push({ type: 'default', value: ',' }); i++; continue; }
+    if (code[i] === '$') {
+      let j = i + 1;
+      while (j < code.length && /[a-zA-Z0-9_-]/.test(code[j])) j++;
+      if (code[j] === '!') j++;
+      tokens.push({ type: 'variable', value: code.slice(i, j) });
+      i = j;
+      continue;
+    }
+    if (code[i] === ':') {
+      let j = i + 1;
+      while (j < code.length && /[a-zA-Z0-9_-]/.test(code[j])) j++;
+      if (code[j] === '!' || code[j] === '+') j++;
+      const lastNonWs = tokens.filter(t => t.type !== 'newline' && t.value.trim()).pop();
+      const isKey = !lastNonWs || lastNonWs.value === '{' || lastNonWs.value === ',';
+      tokens.push({ type: isKey ? 'key' : 'symbol', value: code.slice(i, j) });
+      i = j;
+      continue;
+    }
+    if (code[i] === '\\') {
+      let j = i + 1;
+      if (j < code.length) { j++; while (j < code.length && /[a-zA-Z0-9_-]/.test(code[j])) j++; }
+      tokens.push({ type: 'escape', value: code.slice(i, j) });
+      i = j;
+      continue;
+    }
+    if (' \t'.includes(code[i])) {
+      let j = i;
+      while (j < code.length && ' \t'.includes(code[j])) j++;
+      tokens.push({ type: 'default', value: code.slice(i, j) });
+      i = j;
+      continue;
+    }
+    let j = i;
+    while (j < code.length && !' \t\n{}[],:'.includes(code[j])) j++;
+    const word = code.slice(i, j);
+    if (word === 'true' || word === 'false') tokens.push({ type: 'boolean', value: word });
+    else if (word === 'null') tokens.push({ type: 'null', value: word });
+    else if (/^(inf|-inf|nan)$/.test(word)) tokens.push({ type: 'number', value: word });
+    else if (/^-?(\d[\d_]*\.?[\d_]*([eE][+-]?\d+)?|0x[\da-fA-F_]+|0b[01_]+|0o[0-7_]+)$/.test(word)) tokens.push({ type: 'number', value: word });
+    else tokens.push({ type: 'string', value: word });
+    i = j;
+  }
+  return tokens;
+}
+
+function Highlight({ code }) {
+  const tokens = tokenize(code);
+  return React.createElement('pre', {
+    className: 'bg-[#1e1e1e] p-4 overflow-auto text-[13px] leading-relaxed m-0',
+    style: { fontFamily: "'Fira Code', monospace" }
+  },
+    React.createElement('code', null,
+      tokens.map((t, i) => React.createElement('span', { key: i, style: { color: colors[t.type] || colors.default } }, t.value))
+    )
+  );
+}
+
+const examples = {
+  'Simple Config': `// Simple application configuration
+
+{ $app myapp
+, $version 1.0.0
+, $debug true
+}
+
+{ :meta
+  { :name $app
+  , :version $version
+  }
+
+, :server
+  { :host localhost
+  , :port 8080
+  , :ssl false
+  , :status :running
+  }
+
+, :tags
+  [ :api
+  , :backend
+  , :production
+  ]
+
+, :description
+    This is a multiline description.
+    It can span multiple lines.
+    Commas, like this one, are preserved inline.
+}`,
+
+  'Docker Compose': `// Docker Compose in SYM
+
+{ $db-name myapp
+, $db-user admin
+, $db-pass secretpass123
+}
+
+{ :version 3.8
+, :services
+  { :nginx
+    { :image nginx:alpine
+    , :ports
+      [ 80:80
+      , 443:443
+      ]
+    , :restart :always
+    }
+  , :api
+    { :build
+      { :context ./api
+      }
+    , :environment
+      { :NODE_ENV production
+      , :DATABASE_URL postgres://$db-user:$db-pass@db:5432/$db-name
+      }
+    , :depends_on
+      [ :db
+      , :redis
+      ]
+    }
+  , :db
+    { :image postgres:16-alpine
+    , :environment
+      { :POSTGRES_DB $db-name
+      , :POSTGRES_USER $db-user
+      , :POSTGRES_PASSWORD $db-pass
+      }
+    }
+  }
+, :volumes
+  { :pgdata
+  }
+}`,
+
+  'Kubernetes': `// Kubernetes Deployment
+
+{ $app web-api
+, $replicas 3
+, $image-tag v2.4.1
+}
+
+{ :apiVersion apps/v1
+, :kind :Deployment
+, :metadata
+  { :name $app
+  , :labels
+    { :app $app
+    , :env production
+    }
+  }
+, :spec
+  { :replicas $replicas
+  , :template
+    { :spec
+      { :containers
+        [ { :name $app
+          , :image gcr.io/myproject/$app:$image-tag
+          , :ports
+            [ { :containerPort 8080
+              }
+            ]
+          , :resources
+            { :requests
+              { :cpu 100m
+              , :memory 256Mi
+              }
+            , :limits
+              { :cpu 500m
+              , :memory 512Mi
+              }
+            }
+          , :livenessProbe
+            { :httpGet
+              { :path /health
+              , :port 8080
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}`,
+
+  'Package.json': `// Node.js package manifest
+
+{ :name @acme/billing-service
+, :version 3.2.0
+, :description
+    Internal billing service for processing
+    payments and generating invoices.
+, :license MIT
+, :private true
+
+, :scripts
+  { :dev nodemon src/index.ts
+  , :build tsc
+  , :test jest --coverage
+  }
+
+, :dependencies
+  { :express 4.18.2
+  , :stripe 14.10.0
+  , :zod 3.22.4
+  }
+
+, :devDependencies
+  { :typescript 5.3.3
+  , :jest 29.7.0
+  }
+
+, :engines
+  { :node >=20.0.0
+  }
+}`,
+
+  'GitHub Actions': `// GitHub Actions CI/CD
+
+{ :name CI/CD Pipeline
+, :on
+  { :push
+    { :branches
+      [ main
+      , develop
+      ]
+    }
+  , :pull_request
+    { :branches
+      [ main
+      ]
+    }
+  }
+
+, :jobs
+  { :test
+    { :runs-on ubuntu-latest
+    , :services
+      { :postgres
+        { :image postgres:16-alpine
+        , :env
+          { :POSTGRES_USER test
+          , :POSTGRES_PASSWORD test
+          }
+        }
+      }
+    , :steps
+      [ { :uses actions/checkout@v4
+        }
+      , { :uses actions/setup-node@v4
+        , :with
+          { :node-version 20
+          }
+        }
+      , { :run npm ci
+        }
+      , { :run npm test
+        }
+      ]
+    }
+  , :deploy
+    { :needs test
+    , :if github.ref == 'refs/heads/main'
+    , :runs-on ubuntu-latest
+    , :steps
+      [ { :run echo "Deploying..."
+        }
+      ]
+    }
+  }
+}`,
+
+  'App Config': `// Production app configuration
+
+{ $env production
+, $region us-east-1
+}
+
+{ :app
+  { :name acme-platform
+  , :version 4.12.0
+  }
+
+, :server
+  { :host 0.0.0.0
+  , :port 8080
+  , :cors
+    { :origins
+      [ https://app.acme.com
+      , https://admin.acme.com
+      ]
+    }
+  }
+
+, :database
+  { :host db.$region.acme.internal
+  , :port 5432
+  , :pool
+    { :min 10
+    , :max 50
+    }
+  , :ssl
+    { :enabled true
+    }
+  }
+
+, :redis
+  { :cluster
+    [ { :host redis-1.$region.acme.internal
+      }
+    , { :host redis-2.$region.acme.internal
+      }
+    ]
+  }
+
+, :logging
+  { :level :warn
+  , :format :json
+  , :redact
+    [ password
+    , token
+    , secret
+    ]
+  }
+
+, :features
+  { :new-checkout true
+  , :ai-recs true
+  , :beta-dash false
+  }
+}`,
+
+  'API Response': `// E-commerce Order Response
+
+{ :status :success
+, :data
+  { :order
+    { :id ord_2xK9mN4pL8qR
+    , :status :shipped
+    , :customer
+      { :email sarah@example.com
+      , :name Sarah Johnson
+      , :tier :gold
+      }
+    , :items
+      [ { :sku WH-1000XM5
+        , :name Sony Headphones
+        , :quantity 1
+        , :price 349.99
+        }
+      , { :sku USB-C-2M
+        , :name USB-C Cable
+        , :quantity 2
+        , :price 19.99
+        }
+      ]
+    , :summary
+      { :subtotal 389.97
+      , :discount 35.00
+      , :tax 28.40
+      , :total 383.37
+      , :currency USD
+      }
+    , :payment
+      { :method :credit_card
+      , :brand :visa
+      , :last4 4242
+      , :status :captured
+      }
+    , :shipping
+      { :carrier :fedex
+      , :tracking 794644790138
+      , :eta 2024-01-20
+      }
+    }
+  }
+}`,
+
+  'Tailwind': `// Tailwind CSS Config
+
+{ :content
+  [ ./src/**/*.{js,tsx}
+  , ./app/**/*.{js,tsx}
+  ]
+, :darkMode :class
+, :theme
+  { :extend
+    { :colors
+      { :brand
+        { :50 #eff6ff
+        , :500 #3b82f6
+        , :900 #1e3a8a
+        }
+      , :success #10b981
+      , :error #ef4444
+      }
+    , :fontFamily
+      { :sans
+        [ Inter
+        , system-ui
+        , sans-serif
+        ]
+      , :mono
+        [ Fira Code
+        , monospace
+        ]
+      }
+    , :animation
+      { :fade-in fade-in 0.5s ease-out
+      }
+    , :keyframes
+      { :fade-in
+        { :from
+          { :opacity 0
+          }
+        , :to
+          { :opacity 1
+          }
+        }
+      }
+    }
+  }
+, :plugins
+  [ @tailwindcss/forms
+  , @tailwindcss/typography
+  ]
+}`,
+};
+
+const exampleKeys = Object.keys(examples);
+
+function Hero() {
+  return React.createElement('div', { className: 'text-center mb-12' },
+    React.createElement('h1', { className: 'text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent' }, 'SYM'),
+    React.createElement('p', { className: 'text-xl text-gray-400 mb-6' }, 'A data format for humans. Less syntax, more clarity.'),
+    React.createElement('div', { className: 'flex justify-center gap-4' },
+      React.createElement('a', {
+        href: 'https://github.com/anthropics/sym-format',
+        className: 'px-6 py-2 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-200 transition-colors'
+      }, 'GitHub'),
+      React.createElement('a', {
+        href: 'https://github.com/anthropics/sym-format/blob/main/spec/SPEC.md',
+        className: 'px-6 py-2 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors border border-gray-700'
+      }, 'Specification')
+    )
+  );
+}
+
+function Features() {
+  const features = [
+    { title: 'No Quotes', desc: 'Values are unquoted by default. Write naturally.' },
+    { title: 'Safe Commas', desc: 'Inline commas are fine — only newline+comma separates.' },
+    { title: 'Clear Nesting', desc: 'Brackets make structure obvious at any depth.' },
+    { title: 'Variables', desc: 'Define once, use everywhere with $var syntax.' },
+    { title: 'Symbols', desc: 'Enum-like :keywords for status, types, modes.' },
+    { title: 'Comments', desc: '// line and /* block */ comments supported.' },
+  ];
+  return React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-4 mb-12' },
+    features.map(f => React.createElement('div', { key: f.title, className: 'bg-gray-800/50 rounded-lg p-4 border border-gray-700' },
+      React.createElement('h3', { className: 'font-semibold text-white mb-1' }, f.title),
+      React.createElement('p', { className: 'text-sm text-gray-400' }, f.desc)
+    ))
+  );
+}
+
+function Playground() {
+  const [selected, setSelected] = useState(exampleKeys[0]);
+  
+  return React.createElement('div', { className: 'mb-12' },
+    React.createElement('h2', { className: 'text-2xl font-semibold mb-4 text-white' }, 'Examples'),
+    React.createElement('div', { className: 'flex flex-wrap gap-2 mb-4' },
+      exampleKeys.map(name => React.createElement('button', {
+        key: name,
+        onClick: () => setSelected(name),
+        className: `px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${selected === name ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`
+      }, name))
+    ),
+    React.createElement('div', { className: 'bg-[#161b22] rounded-xl border border-gray-700 overflow-hidden' },
+      React.createElement('div', { className: 'px-4 py-3 border-b border-gray-700 flex items-center gap-2' },
+        React.createElement('div', { className: 'flex gap-1.5' },
+          React.createElement('span', { className: 'w-3 h-3 rounded-full bg-red-500' }),
+          React.createElement('span', { className: 'w-3 h-3 rounded-full bg-yellow-500' }),
+          React.createElement('span', { className: 'w-3 h-3 rounded-full bg-green-500' })
+        ),
+        React.createElement('span', { className: 'ml-2 text-gray-500 text-sm' }, selected.toLowerCase().replace(/ /g, '-').replace(/\./g, '') + '.sym')
+      ),
+      React.createElement('div', { className: 'max-h-[500px] overflow-auto' },
+        React.createElement(Highlight, { code: examples[selected] })
+      )
+    ),
+    React.createElement('div', { className: 'mt-4 text-xs text-gray-500 flex flex-wrap gap-x-3 gap-y-1' },
+      React.createElement('span', { className: 'text-gray-400 font-medium' }, 'Legend:'),
+      Object.entries({ comment: 'comments', variable: 'variables', key: 'keys', symbol: 'symbols', number: 'numbers', boolean: 'booleans', string: 'strings', bracket: 'brackets' }).map(([type, label]) =>
+        React.createElement('span', { key: type },
+          React.createElement('span', { style: { color: colors[type] } }, '●'),
+          ' ' + label
+        )
+      )
+    )
+  );
+}
+
+function Comparison() {
+  const code = {
+    json: `{
+  "name": "my-app",
+  "database": {
+    "host": "localhost",
+    "port": 5432
+  },
+  "tags": ["api", "backend"]
+}`,
+    yaml: `name: my-app
+database:
+  host: localhost
+  port: 5432
+tags:
+  - api
+  - backend`,
+    sym: `{ :name my-app
+, :database
+  { :host localhost
+  , :port 5432
+  }
+, :tags
+  [ api
+  , backend
+  ]
+}`
+  };
+  
+  return React.createElement('div', { className: 'mb-12' },
+    React.createElement('h2', { className: 'text-2xl font-semibold mb-4 text-white' }, 'Comparison'),
+    React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-4' },
+      [['JSON', code.json], ['YAML', code.yaml], ['SYM', code.sym]].map(([title, c]) =>
+        React.createElement('div', { key: title, className: 'bg-[#161b22] rounded-lg border border-gray-700 overflow-hidden' },
+          React.createElement('div', { className: 'px-3 py-2 border-b border-gray-700 text-sm text-gray-400' }, title),
+          React.createElement('pre', { className: 'p-3 text-xs text-gray-300 overflow-auto', style: { fontFamily: "'Fira Code', monospace" } }, c)
+        )
+      )
+    )
+  );
+}
+
+function App() {
+  return React.createElement('div', { className: 'min-h-screen bg-[#0d1117] text-gray-300' },
+    React.createElement('div', { className: 'max-w-5xl mx-auto px-4 py-12' },
+      React.createElement(Hero),
+      React.createElement(Features),
+      React.createElement(Playground),
+      React.createElement(Comparison),
+      React.createElement('footer', { className: 'text-center text-gray-500 text-sm pt-8 border-t border-gray-800' },
+        'MIT License · ',
+        React.createElement('a', { href: 'https://github.com/anthropics/sym-format', className: 'hover:text-gray-300' }, 'View on GitHub')
+      )
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+  </script>
+</body>
+</html>

@@ -1,0 +1,44 @@
+// Simple application configuration
+
+{ $app myapp
+, $version 1.0.0
+, $debug true
+}
+
+{ :meta
+  { :name $app
+  , :version $version
+  }
+
+, :server
+  { :host localhost
+  , :port 8080
+  , :ssl false
+  , :status :running
+  }
+
+, :tags
+  [ :api
+  , :backend
+  , :production
+  ]
+
+, :description
+    This is a multiline description.
+    It can span multiple lines.
+    Commas, like this one, are preserved inline.
+
+, :numbers
+  { :int 42
+  , :hex 0xff
+  , :binary 0b1010
+  , :float 3.14
+  , :scientific 1e10
+  }
+
+, :escaping
+  { :price \$99.99
+  , :not-a-symbol \:foo
+  , :not-a-number \42
+  }
+}

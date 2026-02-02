@@ -1,0 +1,73 @@
+// Node.js package manifest
+
+{ :name @acme/billing-service
+, :version 3.2.0
+, :description
+    Internal billing service for processing payments,
+    generating invoices, and managing subscriptions.
+, :author ACME Engineering <engineering@acme.com>
+, :license MIT
+, :private true
+
+, :main dist/index.js
+, :types dist/index.d.ts
+
+, :scripts
+  { :dev nodemon --watch src --exec ts-node src/index.ts
+  , :build tsc --project tsconfig.build.json
+  , :start node dist/index.js
+  , :test jest --coverage
+  , :test:watch jest --watch
+  , :lint eslint src --ext .ts
+  , :lint:fix eslint src --ext .ts --fix
+  , :typecheck tsc --noEmit
+  , :db:migrate prisma migrate deploy
+  , :db:generate prisma generate
+  , :docker:build docker build -t billing-service .
+  }
+
+, :dependencies
+  { :@prisma/client 5.7.1
+  , :express 4.18.2
+  , :stripe 14.10.0
+  , :zod 3.22.4
+  , :winston 3.11.0
+  , :ioredis 5.3.2
+  , :jsonwebtoken 9.0.2
+  , :bcryptjs 2.4.3
+  , :uuid 9.0.1
+  , :date-fns 3.0.6
+  }
+
+, :devDependencies
+  { :@types/express 4.17.21
+  , :@types/node 20.10.6
+  , :@types/jsonwebtoken 9.0.5
+  , :@types/bcryptjs 2.4.6
+  , :@types/uuid 9.0.7
+  , :typescript 5.3.3
+  , :ts-node 10.9.2
+  , :nodemon 3.0.2
+  , :jest 29.7.0
+  , :ts-jest 29.1.1
+  , :@types/jest 29.5.11
+  , :eslint 8.56.0
+  , :@typescript-eslint/parser 6.17.0
+  , :@typescript-eslint/eslint-plugin 6.17.0
+  , :prisma 5.7.1
+  }
+
+, :engines
+  { :node >=20.0.0
+  , :npm >=10.0.0
+  }
+
+, :repository
+  { :type git
+  , :url git+https://github.com/acme/billing-service.git
+  }
+
+, :bugs
+  { :url https://github.com/acme/billing-service/issues
+  }
+}

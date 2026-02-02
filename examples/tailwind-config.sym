@@ -1,0 +1,193 @@
+// Tailwind CSS Configuration
+
+{ :content
+  [ ./src/**/*.{js,ts,jsx,tsx,mdx}
+  , ./app/**/*.{js,ts,jsx,tsx,mdx}
+  , ./components/**/*.{js,ts,jsx,tsx,mdx}
+  ]
+
+, :darkMode :class
+
+, :theme
+  { :extend
+    { :colors
+      { :brand
+        { :50 #eff6ff
+        , :100 #dbeafe
+        , :200 #bfdbfe
+        , :300 #93c5fd
+        , :400 #60a5fa
+        , :500 #3b82f6
+        , :600 #2563eb
+        , :700 #1d4ed8
+        , :800 #1e40af
+        , :900 #1e3a8a
+        , :950 #172554
+        }
+      , :accent
+        { :50 #fdf4ff
+        , :100 #fae8ff
+        , :200 #f5d0fe
+        , :300 #f0abfc
+        , :400 #e879f9
+        , :500 #d946ef
+        , :600 #c026d3
+        , :700 #a21caf
+        , :800 #86198f
+        , :900 #701a75
+        , :950 #4a044e
+        }
+      , :success #10b981
+      , :warning #f59e0b
+      , :error #ef4444
+      }
+
+    , :fontFamily
+      { :sans
+        [ Inter
+        , ui-sans-serif
+        , system-ui
+        , -apple-system
+        , sans-serif
+        ]
+      , :mono
+        [ Fira Code
+        , ui-monospace
+        , SFMono-Regular
+        , monospace
+        ]
+      , :display
+        [ Cal Sans
+        , Inter
+        , sans-serif
+        ]
+      }
+
+    , :fontSize
+      { :xs
+        [ 0.75rem
+        , { :lineHeight 1rem
+          }
+        ]
+      , :sm
+        [ 0.875rem
+        , { :lineHeight 1.25rem
+          }
+        ]
+      , :base
+        [ 1rem
+        , { :lineHeight 1.5rem
+          }
+        ]
+      , :lg
+        [ 1.125rem
+        , { :lineHeight 1.75rem
+          }
+        ]
+      , :xl
+        [ 1.25rem
+        , { :lineHeight 1.75rem
+          }
+        ]
+      , :2xl
+        [ 1.5rem
+        , { :lineHeight 2rem
+          }
+        ]
+      , :3xl
+        [ 1.875rem
+        , { :lineHeight 2.25rem
+          }
+        ]
+      , :4xl
+        [ 2.25rem
+        , { :lineHeight 2.5rem
+          }
+        ]
+      , :display
+        [ 4.5rem
+        , { :lineHeight 1
+          , :letterSpacing -0.02em
+          }
+        ]
+      }
+
+    , :spacing
+      { :4.5 1.125rem
+      , :18 4.5rem
+      , :112 28rem
+      , :128 32rem
+      }
+
+    , :borderRadius
+      { :4xl 2rem
+      }
+
+    , :boxShadow
+      { :glow 0 0 20px rgba(59, 130, 246, 0.5)
+      , :glow-lg 0 0 40px rgba(59, 130, 246, 0.6)
+      , :inner-light inset 0 1px 0 0 rgba(255, 255, 255, 0.05)
+      }
+
+    , :animation
+      { :fade-in fade-in 0.5s ease-out
+      , :fade-up fade-up 0.5s ease-out
+      , :slide-in slide-in 0.3s ease-out
+      , :spin-slow spin 3s linear infinite
+      , :pulse-slow pulse 3s ease-in-out infinite
+      , :bounce-slow bounce 2s infinite
+      }
+
+    , :keyframes
+      { :fade-in
+        { :from
+          { :opacity 0
+          }
+        , :to
+          { :opacity 1
+          }
+        }
+      , :fade-up
+        { :from
+          { :opacity 0
+          , :transform translateY(20px)
+          }
+        , :to
+          { :opacity 1
+          , :transform translateY(0)
+          }
+        }
+      , :slide-in
+        { :from
+          { :transform translateX(-100%)
+          }
+        , :to
+          { :transform translateX(0)
+          }
+        }
+      }
+
+    , :backgroundImage
+      { :gradient-radial radial-gradient(var(--tw-gradient-stops))
+      , :gradient-conic conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))
+      , :hero-pattern url(/images/hero-pattern.svg)
+      }
+
+    , :screens
+      { :xs 475px
+      , :3xl 1920px
+      }
+    }
+  }
+
+, :plugins
+  [ @tailwindcss/forms
+  , @tailwindcss/typography
+  , @tailwindcss/aspect-ratio
+  , @tailwindcss/container-queries
+  ]
+
+, :future
+  { :hoverOnlyWhenSupported true
+  }
+}

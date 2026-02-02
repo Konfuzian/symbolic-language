@@ -1,0 +1,161 @@
+// Example API Response: E-commerce Order
+
+{ :status :success
+, :data
+  { :order
+    { :id ord_2xK9mN4pL8qR
+    , :status :shipped
+    , :created_at 2024-01-15T14:32:00Z
+    , :updated_at 2024-01-17T09:15:00Z
+
+    , :customer
+      { :id cus_8kL2nM5pQ9rT
+      , :email sarah.johnson@example.com
+      , :name Sarah Johnson
+      , :phone +1-555-0123
+      , :tier :gold
+      }
+
+    , :shipping_address
+      { :line1 742 Evergreen Terrace
+      , :line2 Apt 3B
+      , :city Springfield
+      , :state IL
+      , :postal_code 62701
+      , :country US
+      }
+
+    , :billing_address
+      { :line1 742 Evergreen Terrace
+      , :line2 Apt 3B
+      , :city Springfield
+      , :state IL
+      , :postal_code 62701
+      , :country US
+      , :same_as_shipping true
+      }
+
+    , :items
+      [ { :id itm_1
+        , :sku WH-1000XM5-BLK
+        , :name Sony WH-1000XM5 Wireless Headphones
+        , :description
+            Industry-leading noise cancellation,
+            30-hour battery life, premium comfort
+        , :quantity 1
+        , :unit_price 349.99
+        , :discount 35.00
+        , :total 314.99
+        , :image https://cdn.example.com/products/wh1000xm5-black.jpg
+        , :metadata
+          { :color Black
+          , :warranty 2 years
+          }
+        }
+      , { :id itm_2
+        , :sku USB-C-CABLE-2M
+        , :name USB-C Charging Cable (2m)
+        , :description Braided nylon, fast charging compatible
+        , :quantity 2
+        , :unit_price 19.99
+        , :discount 0
+        , :total 39.98
+        , :image https://cdn.example.com/products/usbc-cable-2m.jpg
+        , :metadata
+          { :color Space Gray
+          , :length 2m
+          }
+        }
+      , { :id itm_3
+        , :sku CASE-HP-LEATHER
+        , :name Premium Leather Headphone Case
+        , :description Hand-stitched genuine leather, fits most over-ear headphones
+        , :quantity 1
+        , :unit_price 59.99
+        , :discount 0
+        , :total 59.99
+        , :image https://cdn.example.com/products/leather-case.jpg
+        , :metadata
+          { :color Brown
+          , :material Genuine Leather
+          }
+        }
+      ]
+
+    , :summary
+      { :subtotal 414.96
+      , :discount_total 35.00
+      , :shipping 0
+      , :tax 32.30
+      , :total 412.26
+      , :currency USD
+      }
+
+    , :discounts
+      [ { :code HOLIDAY2024
+        , :type :percentage
+        , :value 10
+        , :applied_to itm_1
+        , :savings 35.00
+        }
+      ]
+
+    , :payment
+      { :method :credit_card
+      , :brand :visa
+      , :last4 4242
+      , :exp_month 12
+      , :exp_year 2026
+      , :transaction_id txn_3pK8mN2qL4rS
+      , :status :captured
+      , :captured_at 2024-01-15T14:32:05Z
+      }
+
+    , :shipping
+      { :carrier :fedex
+      , :service FedEx Ground
+      , :tracking_number 794644790138
+      , :tracking_url https://www.fedex.com/fedextrack/?trknbr=794644790138
+      , :estimated_delivery 2024-01-20
+      , :shipped_at 2024-01-17T09:15:00Z
+      , :events
+        [ { :status :shipped
+          , :location Memphis, TN
+          , :timestamp 2024-01-17T09:15:00Z
+          , :description Package picked up
+          }
+        , { :status :in_transit
+          , :location Indianapolis, IN
+          , :timestamp 2024-01-18T03:22:00Z
+          , :description In transit to destination
+          }
+        ]
+      }
+
+    , :notes
+      [ { :type :customer
+        , :content Please leave at door if no one is home
+        , :created_at 2024-01-15T14:31:00Z
+        }
+      , { :type :internal
+        , :content Gift wrapping requested - completed
+        , :created_at 2024-01-16T11:00:00Z
+        , :created_by staff_jsmith
+        }
+      ]
+
+    , :flags
+      { :gift true
+      , :gift_message Happy Birthday! Enjoy your new headphones.
+      , :signature_required false
+      , :insurance true
+      }
+    }
+  }
+
+, :meta
+  { :request_id req_9xK2mN4pL8qR
+  , :timestamp 2024-01-18T10:30:00Z
+  , :version 2024-01-01
+  }
+}

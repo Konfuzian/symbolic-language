@@ -1,0 +1,131 @@
+/*
+ * SYM Format - Comprehensive Example
+ * Demonstrates all features
+ */
+
+// === Variable Definitions ===
+
+{ $app myapp
+, $version 2.1.0
+, $debug true
+, $max-connections 1_000
+}
+
+{ $primary-color #3498db
+, $timeout-ms 30000
+}
+
+// === Data Block ===
+
+{ :meta
+  { :name $app                         // variable substitution
+  , :version $version
+  , :description
+      A sample application config
+      that spans multiple lines.
+      Commas, like this, are fine inline.
+  , :keywords
+    [ backend
+    , api
+    , $app                              // variable in array
+    ]
+  }
+
+, :server
+  { :host localhost
+  , :port 8080
+  , :ssl false
+  , :timeout $timeout-ms
+  , :status :running                   // symbol value
+  }
+
+, :database
+  { :primary
+    { :host db.example.com
+    , :port 5432
+    , :pool-size $max-connections
+    , :ssl true
+    }
+  , :replica
+    { :host replica.example.com
+    , :port 5432
+    , :read-only true
+    }
+  }
+
+, :feature-flags
+  { :debug-mode $debug
+  , :new-ui true
+  , :legacy-api false
+  , :experimental null                 // null value
+  }
+
+, :services                            // array of symbols
+  [ :redis
+  , :postgres
+  , :nginx
+  , :prometheus
+  ]
+
+, :numbers-showcase
+  { :int 42
+  , :negative -17
+  , :big 1_000_000
+  , :hex 0xff
+  , :binary 0b1010
+  , :octal 0o755
+  , :float 3.14159
+  , :explicit-float 42.0
+  , :scientific 6.022e23
+  , :sci-negative 1.5e-10
+  , :infinity inf
+  , :neg-infinity -inf
+  , :not-a-number nan
+  }
+
+, :escaping-showcase
+  { :price \$99.99                     // string "$99.99"
+  , :symbol-text \:not-a-symbol        // string ":not-a-symbol"
+  , :number-text \42                   // string "42"
+  , :bool-text \true                   // string "true"
+  , :null-text \null                   // string "null"
+  , :backslash \\path\\to\\file        // string "\path\to\file"
+  , :brace-text \{not an object}       // string "{not an object}"
+  , :bracket-text \[not an array]      // string "[not an array]"
+  }
+
+, :mid-string-braces
+    This contains {braces} and [brackets]
+    No escaping needed because value started with T
+
+, :empty-value                         // empty string
+
+, :multiline-with-indent
+\   line 1 with preserved indent
+\   line 2 with preserved indent
+    line 3 no indent (stripped)
+
+, :log-levels
+  [ :trace
+  , :debug
+  , :info
+  , :warn
+  , :error
+  , :fatal
+  ]
+
+, :theme
+  { :colors
+    { :primary $primary-color
+    , :secondary #2ecc71
+    , :danger #e74c3c
+    , :warning #f39c12
+    }
+  , :fonts
+    [ Inter, sans-serif
+    , Fira Code, monospace
+    ]
+  }
+
+, :message Hello, world! Welcome to $app version $version.
+}

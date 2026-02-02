@@ -1,0 +1,227 @@
+// Production application configuration
+
+{ $env production
+, $region us-east-1
+, $log-level warn
+}
+
+{ :app
+  { :name acme-platform
+  , :version 4.12.0
+  , :environment $env
+  , :debug false
+  }
+
+, :server
+  { :host 0.0.0.0
+  , :port 8080
+  , :workers 4
+  , :keepalive-timeout 65
+  , :request-timeout 30000
+  , :max-request-size 10mb
+  , :cors
+    { :enabled true
+    , :origins
+      [ https://app.acme.com
+      , https://admin.acme.com
+      , https://api.acme.com
+      ]
+    , :methods
+      [ :GET
+      , :POST
+      , :PUT
+      , :DELETE
+      , :PATCH
+      ]
+    , :credentials true
+    }
+  }
+
+, :database
+  { :primary
+    { :host db-primary.$region.acme.internal
+    , :port 5432
+    , :name acme_production
+    , :user acme_app
+    , :password ${DATABASE_PASSWORD}
+    , :pool
+      { :min 10
+      , :max 50
+      , :idle-timeout 10000
+      , :acquire-timeout 30000
+      }
+    , :ssl
+      { :enabled true
+      , :reject-unauthorized true
+      , :ca /etc/ssl/certs/rds-ca-2019-root.pem
+      }
+    }
+  , :replicas
+    [ { :host db-replica-1.$region.acme.internal
+      , :port 5432
+      , :weight 50
+      }
+    , { :host db-replica-2.$region.acme.internal
+      , :port 5432
+      , :weight 50
+      }
+    ]
+  }
+
+, :redis
+  { :cluster
+    [ { :host redis-1.$region.acme.internal
+      , :port 6379
+      }
+    , { :host redis-2.$region.acme.internal
+      , :port 6379
+      }
+    , { :host redis-3.$region.acme.internal
+      , :port 6379
+      }
+    ]
+  , :password ${REDIS_PASSWORD}
+  , :tls true
+  , :db 0
+  , :key-prefix acme:prod:
+  }
+
+, :cache
+  { :default-ttl 3600
+  , :max-ttl 86400
+  , :strategies
+    { :user-profile 1800
+    , :product-catalog 300
+    , :session 7200
+    , :rate-limit 60
+    }
+  }
+
+, :auth
+  { :jwt
+    { :secret ${JWT_SECRET}
+    , :expires-in 15m
+    , :refresh-expires-in 7d
+    , :algorithm RS256
+    , :issuer https://auth.acme.com
+    , :audience https://api.acme.com
+    }
+  , :oauth
+    { :google
+      { :client-id ${GOOGLE_CLIENT_ID}
+      , :client-secret ${GOOGLE_CLIENT_SECRET}
+      , :callback-url https://api.acme.com/auth/google/callback
+      }
+    , :github
+      { :client-id ${GITHUB_CLIENT_ID}
+      , :client-secret ${GITHUB_CLIENT_SECRET}
+      , :callback-url https://api.acme.com/auth/github/callback
+      }
+    }
+  , :rate-limit
+    { :window 60000
+    , :max-requests 100
+    , :skip-successful-requests false
+    }
+  }
+
+, :logging
+  { :level $log-level
+  , :format :json
+  , :transports
+    [ { :type :console
+      , :colorize false
+      }
+    , { :type :datadog
+      , :api-key ${DATADOG_API_KEY}
+      , :service acme-platform
+      , :env $env
+      , :tags
+        [ region:$region
+        , version:4.12.0
+        ]
+      }
+    ]
+  , :redact
+    [ password
+    , token
+    , secret
+    , authorization
+    , cookie
+    , credit_card
+    ]
+  }
+
+, :monitoring
+  { :metrics
+    { :enabled true
+    , :port 9090
+    , :path /metrics
+    }
+  , :health
+    { :path /health
+    , :liveness /health/live
+    , :readiness /health/ready
+    }
+  , :tracing
+    { :enabled true
+    , :service-name acme-platform
+    , :exporter :jaeger
+    , :endpoint http://jaeger.$region.acme.internal:14268/api/traces
+    , :sample-rate 0.1
+    }
+  }
+
+, :features
+  { :new-checkout-flow true
+  , :ai-recommendations true
+  , :beta-dashboard false
+  , :maintenance-mode false
+  , :read-only-mode false
+  }
+
+, :storage
+  { :provider :s3
+  , :bucket acme-uploads-$env
+  , :region $region
+  , :cdn-url https://cdn.acme.com
+  , :max-file-size 50mb
+  , :allowed-types
+    [ image/jpeg
+    , image/png
+    , image/webp
+    , application/pdf
+    , text/csv
+    ]
+  }
+
+, :email
+  { :provider :sendgrid
+  , :api-key ${SENDGRID_API_KEY}
+  , :from
+    { :name ACME Platform
+    , :email noreply@acme.com
+    }
+  , :templates
+    { :welcome tpl_welcome_v2
+    , :password-reset tpl_password_reset
+    , :invoice tpl_invoice_v3
+    , :notification tpl_notification
+    }
+  }
+
+, :queues
+  { :provider :sqs
+  , :region $region
+  , :queues
+    { :emails https://sqs.$region.amazonaws.com/123456789/acme-emails-$env
+    , :webhooks https://sqs.$region.amazonaws.com/123456789/acme-webhooks-$env
+    , :reports https://sqs.$region.amazonaws.com/123456789/acme-reports-$env
+    }
+  , :retry
+    { :max-attempts 3
+    , :backoff-multiplier 2
+    , :initial-delay 1000
+    }
+  }
+}

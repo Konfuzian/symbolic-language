@@ -1,0 +1,94 @@
+// Kubernetes Deployment for a web application
+
+{ $app web-api
+, $namespace production
+, $replicas 3
+, $image-tag v2.4.1
+}
+
+{ :apiVersion apps/v1
+, :kind :Deployment
+, :metadata
+  { :name $app
+  , :namespace $namespace
+  , :labels
+    { :app $app
+    , :env production
+    , :team backend
+    }
+  }
+, :spec
+  { :replicas $replicas
+  , :selector
+    { :matchLabels
+      { :app $app
+      }
+    }
+  , :template
+    { :metadata
+      { :labels
+        { :app $app
+        , :version $image-tag
+        }
+      }
+    , :spec
+      { :containers
+        [ { :name $app
+          , :image gcr.io/myproject/$app:$image-tag
+          , :ports
+            [ { :containerPort 8080
+              , :name http
+              }
+            ]
+          , :env
+            [ { :name NODE_ENV
+              , :value production
+              }
+            , { :name LOG_LEVEL
+              , :value info
+              }
+            , { :name DATABASE_URL
+              , :valueFrom
+                { :secretKeyRef
+                  { :name db-credentials
+                  , :key connection-string
+                  }
+                }
+              }
+            ]
+          , :resources
+            { :requests
+              { :cpu 100m
+              , :memory 256Mi
+              }
+            , :limits
+              { :cpu 500m
+              , :memory 512Mi
+              }
+            }
+          , :livenessProbe
+            { :httpGet
+              { :path /health
+              , :port 8080
+              }
+            , :initialDelaySeconds 10
+            , :periodSeconds 30
+            }
+          , :readinessProbe
+            { :httpGet
+              { :path /ready
+              , :port 8080
+              }
+            , :initialDelaySeconds 5
+            , :periodSeconds 10
+            }
+          }
+        ]
+      , :imagePullSecrets
+        [ { :name gcr-credentials
+          }
+        ]
+      }
+    }
+  }
+}
