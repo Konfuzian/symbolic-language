@@ -36,13 +36,13 @@ SYM supports several basic value types:
 
 | Type | Examples | Notes |
 |------|----------|-------|
-| String | `hello`, `Hello, world`, `New York` | unquoted by default |
+| String | `hello`, `Hello, world`, `New York` | always unquoted |
 | Int | `42`, `-42`, `1_000_000` | |
 | Float | `3.14`, `42.0`, `1e10` | |
 | Boolean | `true`, `false` | |
 | Null | `null` | |
 
-**Strings** are the default — if a value doesn't match another type, it's a string. No quotes needed!
+**Strings** are always unquoted. If a value doesn't match another type (number, boolean, null, symbol, object, array), it's a string. Use `\` to force values to be interpreted as strings (e.g., `\42` for the string "42").
 
 **Numbers** can use underscores for readability (`1_000_000`) and support scientific notation (`3.14e-5`).
 
@@ -430,7 +430,7 @@ Use `:key+` to append to an array instead of replacing:
 
 ## Escaping
 
-`\` at the start of a value disables special interpretation:
+`\` at the start of a value forces interpretation as a string (disables special types):
 
 | Write | Get |
 |-------|-----|
