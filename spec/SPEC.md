@@ -4,7 +4,245 @@ A data format inspired by JSON — less verbose, easier to read.
 
 ---
 
+## Introduction
+
+SYM is a human-friendly data format designed to be:
+- **Less verbose** than JSON (no quotes, fewer braces and commas)
+- **Easy to read and write** for configuration files
+- **Flexible** with multiline strings and inline comments
+- **Type-rich** with support for symbols, numbers, booleans, and more
+
+### Quick Example
+
+```
+{ :name Alice
+, :age 28
+, :active true
+, :hobbies
+  [ reading
+  , cycling
+  , photography
+  ]
+}
+```
+
+In JSON, this would require quotes around every string and key, making it harder to scan visually. SYM keeps the structure clear while reducing noise.
+
+---
+
+## Basic Values
+
+SYM supports several basic value types:
+
+| Type | Examples | Notes |
+|------|----------|-------|
+| String | `hello`, `Hello, world`, `New York` | unquoted by default |
+| Int | `42`, `-42`, `1_000_000` | |
+| Float | `3.14`, `42.0`, `1e10` | |
+| Boolean | `true`, `false` | |
+| Null | `null` | |
+
+**Strings** are the default — if a value doesn't match another type, it's a string. No quotes needed!
+
+**Numbers** can use underscores for readability (`1_000_000`) and support scientific notation (`3.14e-5`).
+
+---
+
+## Basic Structures
+
+### Objects
+
+Objects use curly braces with colon-prefixed keys:
+
+```
+{ :name Alice
+, :age 28
+, :active true
+}
+```
+
+Keys start with `:` and values come after. Commas go at the start of new lines, not the end.
+
+If a key has no value, it defaults to an empty string:
+```
+{ :name
+, :age 28
+}
+// :name is ""
+```
+
+### Arrays
+
+Arrays use square brackets:
+
+```
+[ one
+, two
+, three
+]
+```
+
+Values are separated the same way as object fields.
+
+---
+
+## Comments
+
+```
+// line comment at start
+
+{ :name Alice  // inline comment (after whitespace)
+, :url https://example.com   // this works, url:// is not a comment
+}
+
+/* block
+   comment */
+```
+
+- `//` — line comment, must be at start of line or preceded by whitespace
+- `/* */` — block comment (can span lines)
+
+---
+
+## Field Separator
+
+The separator is `\n\s*,` — a newline followed by optional whitespace (including blank lines) and a comma.
+
+Blank lines between fields are allowed:
+
+```
+{ :first one
+
+, :second two
+}
+```
+
+Inline commas are literal (safe in string values):
+
+```
+{ :greeting Hello, world
+, :note This comma is fine, no problem
+}
+```
+
+---
+
+## Multiline Strings
+
+Just work — lines accumulate until the next separator or closing bracket:
+
+```
+{ :poem
+    Roses are red
+    Violets are blue
+    No comma-newline here
+    So it's all one value
+, :author Anonymous
+}
+```
+
+**Whitespace handling:**
+- Leading whitespace is stripped (per line)
+- Trailing whitespace is stripped (per line)
+- To preserve leading whitespace, escape it with `\` (e.g., `\ ` for space, `\` + tab for tab)
+
+```
+{ :code
+    def hello():
+\       print("hi")
+, :note indentation preserved with backslash
+}
+```
+
+---
+
+## Symbols
+
+Symbols are `:prefixed` values — a distinct type, like strings or numbers:
+
+```
+{ :status :active
+, :services
+  [ :redis
+  , :postgres
+  ]
+}
+```
+
+- Symbols are **not** strings — they're a separate type
+- Tools can interpret them as enums, tags, commands, etc.
+- `:foo` is only a symbol at the **start** of a value
+
+Mid-string colons are literal:
+
+```
+{ :image nginx:alpine        // string "nginx:alpine"
+, :url https://example.com   // string "https://example.com"
+, :status :running           // symbol :running
+}
+```
+
+---
+
+## Advanced Number Formats
+
+SYM supports various number formats:
+
+```
+{ :hex 0xff                // 255
+, :binary 0b1010           // 10
+, :octal 0o755             // 493
+, :scientific 6.022e23     // Avogadro's number
+, :infinity inf
+, :neg-infinity -inf
+, :not-a-number nan
+}
+```
+
+**Number formats:**
+- Integers: decimal, hex (`0x`), binary (`0b`), octal (`0o`)
+- Underscores allowed: `1_000_000`
+- Scientific notation: `1e10`, `3.14e-5`, `6.022E+23`
+- Special floats: `inf`, `-inf`, `nan`
+- Int vs float determined by presence of `.` or special value
+
+---
+
+## Variables
+
+Define variables in a defs block, reference them by name:
+
+```
+{ $theme dark
+, $accent #ff5500
+}
+{ :config
+  { :mode $theme
+  , :highlight $accent
+  }
+}
+```
+
+**Rules:**
+- A block is a defs block if it contains only `$`-prefixed keys and is not the last block
+- Multiple defs blocks allowed — definitions accumulate
+- The last block is always data
+- Variables are substituted with their values
+- Undefined `$variable` is an error
+- `$foo` is only a variable at the **start** of a value
+
+**Multiple defs blocks:**
+```
+{ $env prod }
+{ $region us-east }
+{ :deploy $env-$region }
+```
+
+---
+
 ## Document Structure
+
+With variables and imports, a full SYM document has this structure:
 
 ```
 [imports]?
@@ -187,189 +425,6 @@ Use `:key+` to append to an array instead of replacing:
 | `:key!` | Replace entirely (no inherited fields) |
 | `:key+` | Append to array |
 | `$var!` | Override variable |
-
----
-
-## Values
-
-| Type | Examples | Notes |
-|------|----------|-------|
-| String | `hello`, `Hello, world`, `New York` | unquoted |
-| Int | `42`, `-42`, `1_000_000`, `0xff`, `0b1010`, `0o777` | |
-| Float | `3.14`, `42.0`, `1e10`, `3.14e-5`, `6.022E+23`, `inf`, `-inf`, `nan` | |
-| Boolean | `true`, `false` | |
-| Null | `null` | |
-| Symbol | `:foo`, `:active`, `:redis` | literal value, not substituted |
-| Variable | `$theme`, `$name` | defined in defs, substituted |
-
-**Number formats:**
-- Integers: decimal, hex (`0x`), binary (`0b`), octal (`0o`)
-- Underscores allowed: `1_000_000`
-- Scientific notation: `1e10`, `3.14e-5`, `6.022E+23`
-- Special floats: `inf`, `-inf`, `nan`
-- Int vs float determined by presence of `.` or special value
-
----
-
-## Structures
-
-### Objects
-
-```
-{ :name Alice
-, :age 28
-, :active true
-}
-```
-
-Keys are colon-prefixed: `:key`
-
-Empty value = empty string:
-```
-{ :name
-, :age 28
-}
-// :name is ""
-```
-
-### Arrays
-
-```
-[ one
-, two
-, three
-]
-```
-
----
-
-## Comments
-
-```
-// line comment at start
-
-{ :name Alice  // inline comment (after whitespace)
-, :url https://example.com   // this works, url:// is not a comment
-}
-
-/* block
-   comment */
-```
-
-- `//` — line comment, must be at start of line or preceded by whitespace
-- `/* */` — block comment (can span lines)
-
----
-
-## Field Separator
-
-The separator is `\n\s*,` — a newline followed by optional whitespace (including blank lines) and a comma.
-
-Blank lines between fields are allowed:
-
-```
-{ :first one
-
-, :second two
-}
-```
-
-Inline commas are literal (safe in string values):
-
-```
-{ :greeting Hello, world
-, :note This comma is fine, no problem
-}
-```
-
----
-
-## Multiline Strings
-
-Just work — lines accumulate until the next separator or closing bracket:
-
-```
-{ :poem
-    Roses are red
-    Violets are blue
-    No comma-newline here
-    So it's all one value
-, :author Anonymous
-}
-```
-
-**Whitespace handling:**
-- Leading whitespace is stripped (per line)
-- Trailing whitespace is stripped (per line)
-- To preserve leading whitespace, escape it with `\` (e.g., `\ ` for space, `\` + tab for tab)
-
-```
-{ :code
-    def hello():
-\       print("hi")
-, :note indentation preserved with backslash
-}
-```
-
----
-
-## Variables
-
-Define in a defs block, reference by name:
-
-```
-{ $theme dark
-, $accent #ff5500
-}
-{ :config
-  { :mode $theme
-  , :highlight $accent
-  }
-}
-```
-
-**Rules:**
-- A block is a defs block if it contains only `$`-prefixed keys and is not the last block
-- Multiple defs blocks allowed — definitions accumulate
-- The last block is always data
-- Variables are substituted with their values
-- Undefined `$variable` is an error
-- `$foo` is only a variable at the **start** of a value (same rule as symbols)
-
-**Multiple defs blocks:**
-```
-{ $env prod }
-{ $region us-east }
-{ :deploy $env-$region }
-```
-
----
-
-## Symbols
-
-Symbols are `:prefixed` values — a distinct type, like strings or numbers:
-
-```
-{ :status :active
-, :services
-  [ :redis
-  , :postgres
-  ]
-}
-```
-
-- Symbols are **not** substituted — they remain as-is
-- Tools can interpret them as enums, tags, commands, etc.
-- Different from `$variables` which are substituted
-
-**Important:** `:foo` is only a symbol at the **start** of a value. Mid-string colons are literal:
-
-```
-{ :image nginx:alpine        // string "nginx:alpine"
-, :url https://example.com   // string "https://example.com"
-, :status :running           // symbol :running
-}
-```
 
 ---
 
