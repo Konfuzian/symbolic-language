@@ -68,14 +68,19 @@ function tokenize(code) {
       continue;
     }
     if (code[i] === ':') {
-      let j = i + 1;
-      while (j < code.length && /[a-zA-Z0-9_-]/.test(code[j])) j++;
-      if (code[j] === '!' || code[j] === '+') j++;
-      const lastNonWs = tokens.filter(t => t.type !== 'newline' && t.value.trim()).pop();
-      const isKey = !lastNonWs || lastNonWs.value === '{' || lastNonWs.value === ',';
-      tokens.push({ type: isKey ? 'key' : 'symbol', value: code.slice(i, j) });
-      i = j;
-      continue;
+      const prevChar = i > 0 ? code[i - 1] : '\n';
+      // Only treat as symbol/key if preceded by whitespace, newline, or structural characters
+      if (prevChar === '\n' || prevChar === ' ' || prevChar === '\t' || prevChar === '{' || prevChar === '[' || prevChar === ',' || i === 0) {
+        let j = i + 1;
+        while (j < code.length && /[a-zA-Z0-9_-]/.test(code[j])) j++;
+        if (code[j] === '!' || code[j] === '+') j++;
+        const lastNonWs = tokens.filter(t => t.type !== 'newline' && t.value.trim()).pop();
+        const isKey = !lastNonWs || lastNonWs.value === '{' || lastNonWs.value === ',';
+        tokens.push({ type: isKey ? 'key' : 'symbol', value: code.slice(i, j) });
+        i = j;
+        continue;
+      }
+      // Otherwise, it's part of a string value, fall through to string tokenization
     }
     if (code[i] === '\\') {
       let j = i + 1;

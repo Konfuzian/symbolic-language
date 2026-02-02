@@ -2,7 +2,7 @@
 
 **A data format for humans.** Less syntax, more clarity.
 
-**[Live Demo →](https://anthropics.github.io/symbolic-language)**
+**[Live Demo →](https://konfuzian.github.io/symbolic-language/)**
 
 ```sym
 // Application configuration
@@ -99,7 +99,7 @@ SYM is designed for **one key-value pair per line** with **leading commas**:
 ## Documentation
 
 ### Getting Started
-- **[Live Playground](https://anthropics.github.io/symbolic-language)** — Interactive demo with syntax highlighting
+- **[Live Playground](https://konfuzian.github.io/symbolic-language/)** — Interactive demo with syntax highlighting
 - **[Cheatsheet](docs/CHEATSHEET.md)** — Quick syntax reference (2 min read)
 - **[Examples](examples/)** — Real-world configuration files
 

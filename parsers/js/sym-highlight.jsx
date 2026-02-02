@@ -94,23 +94,28 @@ function tokenize(code) {
     
     // Key or symbol: :name
     if (code[i] === ':') {
-      let j = i + 1;
-      while (j < code.length && /[a-zA-Z0-9_-]/.test(code[j])) j++;
-      // Check for ! or + modifier
-      if (code[j] === '!' || code[j] === '+') j++;
-      const value = code.slice(i, j);
-      
-      // Determine if key or symbol based on context
-      // Keys come after { or , at start of line; symbols are values
-      const lastNonWs = tokens.filter(t => t.type !== 'newline' && t.value.trim()).pop();
-      const isKey = !lastNonWs || 
-                    lastNonWs.value === '{' || 
-                    lastNonWs.value === ',';
-      
-      tokens.push({ type: isKey ? 'key' : 'symbol', value });
-      i = j;
-      atValueStart = !isKey;
-      continue;
+      const prevChar = i > 0 ? code[i - 1] : '\n';
+      // Only treat as symbol/key if preceded by whitespace, newline, or structural characters
+      if (prevChar === '\n' || prevChar === ' ' || prevChar === '\t' || prevChar === '{' || prevChar === '[' || prevChar === ',' || i === 0) {
+        let j = i + 1;
+        while (j < code.length && /[a-zA-Z0-9_-]/.test(code[j])) j++;
+        // Check for ! or + modifier
+        if (code[j] === '!' || code[j] === '+') j++;
+        const value = code.slice(i, j);
+
+        // Determine if key or symbol based on context
+        // Keys come after { or , at start of line; symbols are values
+        const lastNonWs = tokens.filter(t => t.type !== 'newline' && t.value.trim()).pop();
+        const isKey = !lastNonWs ||
+                      lastNonWs.value === '{' ||
+                      lastNonWs.value === ',';
+
+        tokens.push({ type: isKey ? 'key' : 'symbol', value });
+        i = j;
+        atValueStart = !isKey;
+        continue;
+      }
+      // Otherwise, it's part of a string value, fall through to string tokenization
     }
     
     // Escape sequences
