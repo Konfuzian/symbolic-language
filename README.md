@@ -2,7 +2,7 @@
 
 **A data format for humans.** Less syntax, more clarity.
 
-**[Live Demo →](https://anthropics.github.io/sym-format)**
+**[Live Demo →](https://anthropics.github.io/symbolic-language)**
 
 ```sym
 // Application configuration
@@ -98,9 +98,18 @@ SYM is designed for **one key-value pair per line** with **leading commas**:
 
 ## Documentation
 
-- **[Live Playground](https://anthropics.github.io/sym-format)** — Interactive demo with syntax highlighting
-- **[Full Specification](spec/SPEC.md)** — Complete language reference
+### Getting Started
+- **[Live Playground](https://anthropics.github.io/symbolic-language)** — Interactive demo with syntax highlighting
+- **[Cheatsheet](docs/CHEATSHEET.md)** — Quick syntax reference (2 min read)
 - **[Examples](examples/)** — Real-world configuration files
+
+### Complete Reference
+- **[Full Specification](spec/SPEC.md)** — Complete language reference
+- **[Documentation Hub](docs/)** — All guides and references
+
+### For AI Assistants
+- **[Claude Guide](docs/CLAUDE.md)** — Comprehensive guide for AI assistants
+- **[Usage Guide](docs/USAGE.md)** — Working with Claude and SYM files
 
 ## Implementations
 
