@@ -10,17 +10,89 @@
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     body { font-family: 'Inter', system-ui, sans-serif; }
-    code, pre { font-family: 'Fira Code', monospace; }
+    code, pre, textarea { font-family: 'Fira Code', monospace; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .animate-fadeIn {
+      animation: fadeIn 0.6s ease-out forwards;
+    }
+
+    .animate-slideIn {
+      animation: slideIn 0.5s ease-out forwards;
+    }
+
+    .animate-pulse {
+      animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .gradient-border {
+      position: relative;
+      background: linear-gradient(#0d1117, #0d1117) padding-box,
+                  linear-gradient(135deg, #60a5fa, #a78bfa, #ec4899) border-box;
+      border: 2px solid transparent;
+    }
+
+    * { scroll-behavior: smooth; }
+
+    .line-numbers {
+      display: inline-block;
+      text-align: right;
+      padding-right: 1em;
+      border-right: 1px solid #30363d;
+      margin-right: 1em;
+      user-select: none;
+      color: #6e7681;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      padding: 0.75rem 1.5rem;
+      background: #10b981;
+      color: white;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
   </style>
 </head>
 <body>
   <div id="root"></div>
   <script>
-const { useState } = React;
+const { useState, useEffect, useRef } = React;
 
+// === COLORS ===
 const colors = {
   comment: '#6a9955',
   variable: '#c586c0',
@@ -35,6 +107,7 @@ const colors = {
   default: '#d4d4d4',
 };
 
+// === TOKENIZER ===
 function tokenize(code) {
   const tokens = [];
   let i = 0;
@@ -69,7 +142,6 @@ function tokenize(code) {
     }
     if (code[i] === ':') {
       const prevChar = i > 0 ? code[i - 1] : '\n';
-      // Only treat as symbol/key if preceded by whitespace, newline, or structural characters
       if (prevChar === '\n' || prevChar === ' ' || prevChar === '\t' || prevChar === '{' || prevChar === '[' || prevChar === ',' || i === 0) {
         let j = i + 1;
         while (j < code.length && /[a-zA-Z0-9_-]/.test(code[j])) j++;
@@ -80,7 +152,6 @@ function tokenize(code) {
         i = j;
         continue;
       }
-      // Otherwise, it's part of a string value, fall through to string tokenization
     }
     if (code[i] === '\\') {
       let j = i + 1;
@@ -109,8 +180,88 @@ function tokenize(code) {
   return tokens;
 }
 
-function Highlight({ code }) {
+// === MOCK JSON GENERATOR ===
+function symToJson(symCode) {
+  // This is a simplified mock - in production, use the Rust parser via WASM
+  try {
+    // Basic structure detection
+    const trimmed = symCode.trim();
+    if (trimmed.startsWith('{') && trimmed.includes(':')) {
+      return '{\n  "note": "Full parsing requires the SYM parser",\n  "structure": "object detected",\n  "keys": [...]\n}';
+    }
+    if (trimmed.startsWith('[')) {
+      return '[\n  "Full parsing requires the SYM parser",\n  "array detected"\n]';
+    }
+    return '{\n  "info": "Type SYM code to see structure"\n}';
+  } catch (e) {
+    return '{\n  "error": "Invalid SYM syntax"\n}';
+  }
+}
+
+// === TOAST COMPONENT ===
+function Toast({ message, show, onClose }) {
+  useEffect(() => {
+    if (show) {
+      const timer = setTimeout(onClose, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [show, onClose]);
+
+  if (!show) return null;
+  return React.createElement('div', { className: 'toast' }, message);
+}
+
+// === COPY BUTTON ===
+function CopyButton({ text, label = 'Copy' }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  return React.createElement('button', {
+    onClick: handleCopy,
+    className: 'px-3 py-1.5 text-xs font-medium rounded-md transition-all ' +
+      (copied ? 'bg-green-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'),
+    title: copied ? 'Copied!' : label
+  }, copied ? '✓ Copied!' : '📋 ' + label);
+}
+
+// === LINE NUMBERS ===
+function withLineNumbers(code) {
+  const lines = code.split('\n');
+  return lines.map((line, i) => React.createElement('div', { key: i, className: 'flex' },
+    React.createElement('span', { className: 'line-numbers text-xs' }, i + 1),
+    React.createElement('span', null, line || ' ')
+  ));
+}
+
+// === HIGHLIGHT COMPONENT ===
+function Highlight({ code, showLineNumbers = false }) {
   const tokens = tokenize(code);
+  if (showLineNumbers) {
+    const lines = code.split('\n');
+    return React.createElement('pre', {
+      className: 'bg-[#1e1e1e] p-4 overflow-auto text-[13px] leading-relaxed m-0',
+      style: { fontFamily: "'Fira Code', monospace" }
+    },
+      lines.map((line, i) => React.createElement('div', { key: i, className: 'flex' },
+        React.createElement('span', { className: 'inline-block w-8 text-right pr-3 text-gray-600 select-none border-r border-gray-700 mr-3' }, i + 1),
+        React.createElement('code', null,
+          tokenize(line).map((t, j) => React.createElement('span', {
+            key: j,
+            style: { color: colors[t.type] || colors.default }
+          }, t.value))
+        )
+      ))
+    );
+  }
+
   return React.createElement('pre', {
     className: 'bg-[#1e1e1e] p-4 overflow-auto text-[13px] leading-relaxed m-0',
     style: { fontFamily: "'Fira Code', monospace" }
@@ -121,8 +272,70 @@ function Highlight({ code }) {
   );
 }
 
+// === LIVE EDITOR ===
+function LiveEditor() {
+  const defaultCode = \`// Try editing this SYM code!
+
+{ :name John Doe
+, :age 30
+, :email john@example.com
+, :active true
+}\`;
+
+  const [code, setCode] = useState(defaultCode);
+  const [jsonOutput, setJsonOutput] = useState('');
+
+  useEffect(() => {
+    setJsonOutput(symToJson(code));
+  }, [code]);
+
+  return React.createElement('div', { className: 'mb-12' },
+    React.createElement('h2', { className: 'text-2xl font-bold mb-4 text-white' }, '✨ Try It Live'),
+    React.createElement('p', { className: 'text-gray-400 mb-4' }, 'Edit the SYM code and see the structure update in real-time'),
+
+    React.createElement('div', { className: 'grid grid-cols-1 lg:grid-cols-2 gap-4' },
+      // Left: Editor
+      React.createElement('div', { className: 'bg-[#161b22] rounded-xl border border-gray-700 overflow-hidden' },
+        React.createElement('div', { className: 'px-4 py-3 border-b border-gray-700 flex items-center justify-between' },
+          React.createElement('span', { className: 'text-gray-400 text-sm font-medium' }, 'SYM Input'),
+          React.createElement(CopyButton, { text: code, label: 'Copy' })
+        ),
+        React.createElement('textarea', {
+          value: code,
+          onChange: (e) => setCode(e.target.value),
+          className: 'w-full h-80 bg-[#1e1e1e] text-gray-300 p-4 text-sm resize-none border-none',
+          style: { fontFamily: "'Fira Code', monospace" },
+          spellCheck: false
+        })
+      ),
+
+      // Right: JSON Output
+      React.createElement('div', { className: 'bg-[#161b22] rounded-xl border border-gray-700 overflow-hidden' },
+        React.createElement('div', { className: 'px-4 py-3 border-b border-gray-700 flex items-center justify-between' },
+          React.createElement('span', { className: 'text-gray-400 text-sm font-medium' }, 'JSON Structure'),
+          React.createElement(CopyButton, { text: jsonOutput, label: 'Copy' })
+        ),
+        React.createElement('pre', {
+          className: 'h-80 bg-[#1e1e1e] text-gray-300 p-4 text-sm overflow-auto',
+          style: { fontFamily: "'Fira Code', monospace" }
+        }, jsonOutput)
+      )
+    ),
+
+    React.createElement('p', { className: 'mt-3 text-xs text-gray-500' },
+      '💡 Note: Full parsing requires the ',
+      React.createElement('a', {
+        href: 'https://github.com/Konfuzian/symbolic-language/tree/main/parsers/rust',
+        className: 'text-blue-400 hover:underline'
+      }, 'Rust parser'),
+      '. This demo shows a simplified structure.'
+    )
+  );
+}
+
+// === EXAMPLES DATA ===
 const examples = {
-  'Simple Config': `// Simple application configuration
+  'Simple Config': \`// Simple application configuration
 
 { $app myapp
 , $version 1.0.0
@@ -151,9 +364,9 @@ const examples = {
     This is a multiline description.
     It can span multiple lines.
     Commas, like this one, are preserved inline.
-}`,
+}\`,
 
-  'Docker Compose': `// Docker Compose in SYM
+  'Docker Compose': \`// Docker Compose in SYM
 
 { $db-name myapp
 , $db-user admin
@@ -195,9 +408,9 @@ const examples = {
 , :volumes
   { :pgdata
   }
-}`,
+}\`,
 
-  'Kubernetes': `// Kubernetes Deployment
+  'Kubernetes': \`// Kubernetes Deployment
 
 { $app web-api
 , $replicas 3
@@ -245,9 +458,9 @@ const examples = {
       }
     }
   }
-}`,
+}\`,
 
-  'Package.json': `// Node.js package manifest
+  'Package.json': \`// Node.js package manifest
 
 { :name @acme/billing-service
 , :version 3.2.0
@@ -277,9 +490,9 @@ const examples = {
 , :engines
   { :node >=20.0.0
   }
-}`,
+}\`,
 
-  'GitHub Actions': `// GitHub Actions CI/CD
+  'GitHub Actions': \`// GitHub Actions CI/CD
 
 { :name CI/CD Pipeline
 , :on
@@ -332,9 +545,9 @@ const examples = {
       ]
     }
   }
-}`,
+}\`,
 
-  'App Config': `// Production app configuration
+  'App Config': \`// Production app configuration
 
 { $env production
 , $region us-east-1
@@ -392,9 +605,9 @@ const examples = {
   , :ai-recs true
   , :beta-dash false
   }
-}`,
+}\`,
 
-  'API Response': `// E-commerce Order Response
+  'API Response': \`// E-commerce Order Response
 
 { :status :success
 , :data
@@ -438,9 +651,9 @@ const examples = {
       }
     }
   }
-}`,
+}\`,
 
-  'Tailwind': `// Tailwind CSS Config
+  'Tailwind': \`// Tailwind CSS Config
 
 { :content
   [ ./src/**/*.{js,tsx}
@@ -488,100 +701,188 @@ const examples = {
   [ @tailwindcss/forms
   , @tailwindcss/typography
   ]
-}`,
+}\`,
 };
 
 const exampleKeys = Object.keys(examples);
 
+// === HERO ===
 function Hero() {
-  return React.createElement('div', { className: 'text-center mb-12' },
-    React.createElement('h1', { className: 'text-5xl font-bold mb-4 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent' }, 'SYM'),
-    React.createElement('p', { className: 'text-xl text-gray-400 mb-6' }, 'A data format for humans. Less syntax, more clarity.'),
-    React.createElement('div', { className: 'flex justify-center gap-4' },
+  return React.createElement('div', { className: 'text-center mb-16 animate-fadeIn' },
+    React.createElement('h1', {
+      className: 'text-6xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent',
+      style: { animationDelay: '0.1s' }
+    }, 'SYM'),
+    React.createElement('p', {
+      className: 'text-xl md:text-2xl text-gray-300 mb-4',
+      style: { animationDelay: '0.2s' }
+    }, 'A data format for humans.'),
+    React.createElement('p', {
+      className: 'text-lg text-gray-400 mb-8',
+      style: { animationDelay: '0.3s' }
+    }, 'Less syntax, more clarity.'),
+    React.createElement('div', {
+      className: 'flex flex-wrap justify-center gap-4',
+      style: { animationDelay: '0.4s' }
+    },
       React.createElement('a', {
-        href: 'https://github.com/anthropics/symbolic-language',
-        className: 'px-6 py-2 bg-white text-gray-900 rounded-lg font-medium hover:bg-gray-200 transition-colors'
-      }, 'GitHub'),
+        href: 'https://github.com/Konfuzian/symbolic-language',
+        className: 'px-8 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold hover:from-blue-600 hover:to-blue-700 transition-all shadow-lg hover:shadow-blue-500/50 transform hover:scale-105'
+      }, '⭐ GitHub'),
       React.createElement('a', {
-        href: 'https://github.com/anthropics/symbolic-language/blob/main/spec/SPEC.md',
-        className: 'px-6 py-2 bg-gray-800 text-white rounded-lg font-medium hover:bg-gray-700 transition-colors border border-gray-700'
-      }, 'Specification')
+        href: 'https://github.com/Konfuzian/symbolic-language/blob/main/spec/SPEC.md',
+        className: 'px-8 py-3 glass text-white rounded-lg font-semibold hover:bg-white/10 transition-all'
+      }, '📖 Specification'),
+      React.createElement('a', {
+        href: 'https://github.com/Konfuzian/symbolic-language/tree/main/tests',
+        className: 'px-8 py-3 glass text-white rounded-lg font-semibold hover:bg-white/10 transition-all'
+      }, '🧪 Test Suite')
     )
   );
 }
 
+// === FEATURES ===
 function Features() {
   const features = [
-    { title: 'No Quotes', desc: 'Values are always unquoted. Write naturally.' },
-    { title: 'Safe Commas', desc: 'Inline commas are fine — only newline+comma separates.' },
-    { title: 'Clear Nesting', desc: 'Brackets make structure obvious at any depth.' },
-    { title: 'Variables', desc: 'Define once, use everywhere with $var syntax.' },
-    { title: 'Symbols', desc: 'Enum-like :keywords for status, types, modes.' },
-    { title: 'Comments', desc: '// line and /* block */ comments supported.' },
+    { icon: '🚫', title: 'No Quotes', desc: 'Values are always unquoted. Write naturally without escaping.' },
+    { icon: '✅', title: 'Safe Commas', desc: 'Inline commas are fine — only newline+comma separates elements.' },
+    { icon: '🎯', title: 'Clear Nesting', desc: 'Brackets make structure obvious at any depth.' },
+    { icon: '💎', title: 'Variables', desc: 'Define once, use everywhere with $var syntax. DRY principle.' },
+    { icon: '🏷️', title: 'Symbols', desc: 'Enum-like :keywords for status, types, modes.' },
+    { icon: '💬', title: 'Comments', desc: '// line and /* block */ comments fully supported.' },
   ];
-  return React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-4 mb-12' },
-    features.map(f => React.createElement('div', { key: f.title, className: 'bg-gray-800/50 rounded-lg p-4 border border-gray-700' },
-      React.createElement('h3', { className: 'font-semibold text-white mb-1' }, f.title),
+
+  return React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-16' },
+    features.map((f, i) => React.createElement('div', {
+      key: f.title,
+      className: 'glass rounded-xl p-6 hover:bg-white/10 transition-all animate-fadeIn',
+      style: { animationDelay: \`\${0.5 + i * 0.1}s\` }
+    },
+      React.createElement('div', { className: 'text-4xl mb-3' }, f.icon),
+      React.createElement('h3', { className: 'font-bold text-white mb-2 text-lg' }, f.title),
       React.createElement('p', { className: 'text-sm text-gray-400' }, f.desc)
     ))
   );
 }
 
+// === PLAYGROUND ===
 function Playground() {
-  const [selected, setSelected] = useState(exampleKeys[0]);
-  
-  return React.createElement('div', { className: 'mb-12' },
-    React.createElement('h2', { className: 'text-2xl font-semibold mb-4 text-white' }, 'Examples'),
+  const [selected, setSelected] = useState(() => {
+    const hash = window.location.hash.slice(1);
+    return exampleKeys.find(k => k.toLowerCase().replace(/ /g, '-') === hash) || exampleKeys[0];
+  });
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      const currentIndex = exampleKeys.indexOf(selected);
+      if (e.key === 'ArrowLeft' && currentIndex > 0) {
+        setSelected(exampleKeys[currentIndex - 1]);
+      } else if (e.key === 'ArrowRight' && currentIndex < exampleKeys.length - 1) {
+        setSelected(exampleKeys[currentIndex + 1]);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selected]);
+
+  useEffect(() => {
+    window.location.hash = selected.toLowerCase().replace(/ /g, '-');
+  }, [selected]);
+
+  const downloadExample = () => {
+    const blob = new Blob([examples[selected]], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = selected.toLowerCase().replace(/ /g, '-') + '.sym';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return React.createElement('div', { className: 'mb-16' },
+    React.createElement('h2', { className: 'text-3xl font-bold mb-2 text-white' }, '📚 Examples'),
+    React.createElement('p', { className: 'text-gray-400 mb-6' }, 'Browse real-world configurations. Use ← → arrow keys to navigate.'),
+
     React.createElement('div', { className: 'flex flex-wrap gap-2 mb-4' },
       exampleKeys.map(name => React.createElement('button', {
         key: name,
         onClick: () => setSelected(name),
-        className: `px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${selected === name ? 'bg-green-600 text-white' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'}`
+        className: \`px-4 py-2 rounded-lg text-sm font-medium transition-all transform \${
+          selected === name
+            ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg scale-105'
+            : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
+        }\`
       }, name))
     ),
-    React.createElement('div', { className: 'bg-[#161b22] rounded-xl border border-gray-700 overflow-hidden' },
-      React.createElement('div', { className: 'px-4 py-3 border-b border-gray-700 flex items-center gap-2' },
-        React.createElement('div', { className: 'flex gap-1.5' },
-          React.createElement('span', { className: 'w-3 h-3 rounded-full bg-red-500' }),
-          React.createElement('span', { className: 'w-3 h-3 rounded-full bg-yellow-500' }),
-          React.createElement('span', { className: 'w-3 h-3 rounded-full bg-green-500' })
+
+    React.createElement('div', { className: 'gradient-border rounded-xl overflow-hidden' },
+      React.createElement('div', { className: 'px-4 py-3 bg-[#161b22] border-b border-gray-700 flex items-center justify-between flex-wrap gap-2' },
+        React.createElement('div', { className: 'flex items-center gap-3' },
+          React.createElement('div', { className: 'flex gap-1.5' },
+            React.createElement('span', { className: 'w-3 h-3 rounded-full bg-red-500' }),
+            React.createElement('span', { className: 'w-3 h-3 rounded-full bg-yellow-500' }),
+            React.createElement('span', { className: 'w-3 h-3 rounded-full bg-green-500' })
+          ),
+          React.createElement('span', { className: 'text-gray-400 text-sm font-medium' },
+            selected.toLowerCase().replace(/ /g, '-').replace(/\./g, '') + '.sym'
+          )
         ),
-        React.createElement('span', { className: 'ml-2 text-gray-500 text-sm' }, selected.toLowerCase().replace(/ /g, '-').replace(/\./g, '') + '.sym')
+        React.createElement('div', { className: 'flex gap-2' },
+          React.createElement(CopyButton, { text: examples[selected], label: 'Copy' }),
+          React.createElement('button', {
+            onClick: downloadExample,
+            className: 'px-3 py-1.5 text-xs font-medium rounded-md bg-gray-700 text-gray-300 hover:bg-gray-600 transition-all'
+          }, '⬇️ Download')
+        )
       ),
-      React.createElement('div', { className: 'max-h-[500px] overflow-auto' },
-        React.createElement(Highlight, { code: examples[selected] })
+      React.createElement('div', { className: 'max-h-[500px] overflow-auto bg-[#1e1e1e]' },
+        React.createElement(Highlight, { code: examples[selected], showLineNumbers: true })
       )
     ),
-    React.createElement('div', { className: 'mt-4 text-xs text-gray-500 flex flex-wrap gap-x-3 gap-y-1' },
-      React.createElement('span', { className: 'text-gray-400 font-medium' }, 'Legend:'),
-      Object.entries({ comment: 'comments', variable: 'variables', key: 'keys', symbol: 'symbols', number: 'numbers', boolean: 'booleans', string: 'strings', bracket: 'brackets' }).map(([type, label]) =>
-        React.createElement('span', { key: type },
+
+    React.createElement('div', { className: 'mt-4 text-xs text-gray-500 flex flex-wrap gap-x-4 gap-y-2' },
+      React.createElement('span', { className: 'text-gray-400 font-semibold' }, 'Legend:'),
+      Object.entries({
+        comment: 'comments',
+        variable: 'variables',
+        key: 'keys',
+        symbol: 'symbols',
+        number: 'numbers',
+        boolean: 'booleans',
+        string: 'strings',
+        bracket: 'brackets'
+      }).map(([type, label]) =>
+        React.createElement('span', { key: type, className: 'flex items-center gap-1' },
           React.createElement('span', { style: { color: colors[type] } }, '●'),
-          ' ' + label
+          label
         )
       )
     )
   );
 }
 
+// === COMPARISON ===
 function Comparison() {
-  const code = {
-    json: `{
+  const examples = {
+    json: \`{
   "name": "my-app",
+  "address": "123 Main St, Apt 4",
   "database": {
     "host": "localhost",
     "port": 5432
   },
   "tags": ["api", "backend"]
-}`,
-    yaml: `name: my-app
+}\`,
+    yaml: \`name: my-app
+address: "123 Main St, Apt 4"  # Must quote!
 database:
   host: localhost
   port: 5432
 tags:
   - api
-  - backend`,
-    sym: `{ :name my-app
+  - backend\`,
+    sym: \`{ :name my-app
+, :address 123 Main St, Apt 4
 , :database
   { :host localhost
   , :port 5432
@@ -590,34 +891,84 @@ tags:
   [ api
   , backend
   ]
-}`
+}\`
   };
-  
-  return React.createElement('div', { className: 'mb-12' },
-    React.createElement('h2', { className: 'text-2xl font-semibold mb-4 text-white' }, 'Comparison'),
+
+  return React.createElement('div', { className: 'mb-16' },
+    React.createElement('h2', { className: 'text-3xl font-bold mb-2 text-white' }, '⚖️ Comparison'),
+    React.createElement('p', { className: 'text-gray-400 mb-6' }, 'See how SYM compares to other formats'),
+
     React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-4' },
-      [['JSON', code.json], ['YAML', code.yaml], ['SYM', code.sym]].map(([title, c]) =>
-        React.createElement('div', { key: title, className: 'bg-[#161b22] rounded-lg border border-gray-700 overflow-hidden' },
-          React.createElement('div', { className: 'px-3 py-2 border-b border-gray-700 text-sm text-gray-400' }, title),
-          React.createElement('pre', { className: 'p-3 text-xs text-gray-300 overflow-auto', style: { fontFamily: "'Fira Code', monospace" } }, c)
+      [
+        ['JSON', examples.json, 'Requires quotes, no inline commas'],
+        ['YAML', examples.yaml, 'Indentation-sensitive, must quote commas'],
+        ['SYM ✨', examples.sym, 'No quotes, inline commas safe']
+      ].map(([title, code, note]) =>
+        React.createElement('div', {
+          key: title,
+          className: \`glass rounded-xl overflow-hidden border \${title.includes('✨') ? 'border-green-500/50' : 'border-gray-700'}\`
+        },
+          React.createElement('div', { className: 'px-4 py-3 border-b border-gray-700 flex items-center justify-between' },
+            React.createElement('span', { className: 'text-sm font-semibold text-white' }, title),
+            React.createElement(CopyButton, { text: code, label: 'Copy' })
+          ),
+          React.createElement('pre', {
+            className: 'p-4 text-xs text-gray-300 overflow-auto bg-[#1e1e1e] h-64',
+            style: { fontFamily: "'Fira Code', monospace" }
+          }, code),
+          React.createElement('div', { className: 'px-4 py-2 bg-gray-900/50 text-xs text-gray-500' }, note)
         )
       )
     )
   );
 }
 
+// === FOOTER ===
+function Footer() {
+  return React.createElement('footer', { className: 'text-center text-gray-500 text-sm pt-12 border-t border-gray-800' },
+    React.createElement('p', { className: 'mb-2' },
+      'MIT License · Built with ',
+      React.createElement('span', { className: 'text-red-500' }, '♥'),
+      ' for humans'
+    ),
+    React.createElement('p', null,
+      React.createElement('a', {
+        href: 'https://github.com/Konfuzian/symbolic-language',
+        className: 'hover:text-gray-300 underline'
+      }, 'View on GitHub'),
+      ' · ',
+      React.createElement('a', {
+        href: 'https://github.com/Konfuzian/symbolic-language/blob/main/spec/SPEC.md',
+        className: 'hover:text-gray-300 underline'
+      }, 'Specification'),
+      ' · ',
+      React.createElement('a', {
+        href: 'https://github.com/Konfuzian/symbolic-language/tree/main/tests',
+        className: 'hover:text-gray-300 underline'
+      }, 'Tests')
+    )
+  );
+}
+
+// === MAIN APP ===
 function App() {
+  const [toastMessage, setToastMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
+
   return React.createElement('div', { className: 'min-h-screen bg-[#0d1117] text-gray-300' },
-    React.createElement('div', { className: 'max-w-5xl mx-auto px-4 py-12' },
+    React.createElement('div', { className: 'max-w-6xl mx-auto px-4 py-12 md:py-20' },
       React.createElement(Hero),
       React.createElement(Features),
+      React.createElement(LiveEditor),
       React.createElement(Playground),
       React.createElement(Comparison),
-      React.createElement('footer', { className: 'text-center text-gray-500 text-sm pt-8 border-t border-gray-800' },
-        'MIT License · ',
-        React.createElement('a', { href: 'https://github.com/anthropics/symbolic-language', className: 'hover:text-gray-300' }, 'View on GitHub')
-      )
-    )
+      React.createElement(Footer)
+    ),
+    React.createElement(Toast, {
+      message: toastMessage,
+      show: showToast,
+      onClose: () => setShowToast(false)
+    })
   );
 }
 
