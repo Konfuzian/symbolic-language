@@ -274,13 +274,13 @@ function Highlight({ code, showLineNumbers = false }) {
 
 // === LIVE EDITOR ===
 function LiveEditor() {
-  const defaultCode = \`// Try editing this SYM code!
+  const defaultCode = `// Try editing this SYM code!
 
 { :name John Doe
 , :age 30
 , :email john@example.com
 , :active true
-}\`;
+}`;
 
   const [code, setCode] = useState(defaultCode);
   const [jsonOutput, setJsonOutput] = useState('');
@@ -335,7 +335,7 @@ function LiveEditor() {
 
 // === EXAMPLES DATA ===
 const examples = {
-  'Simple Config': \`// Simple application configuration
+  'Simple Config': `// Simple application configuration
 
 { $app myapp
 , $version 1.0.0
@@ -364,9 +364,9 @@ const examples = {
     This is a multiline description.
     It can span multiple lines.
     Commas, like this one, are preserved inline.
-}\`,
+}`,
 
-  'Docker Compose': \`// Docker Compose in SYM
+  'Docker Compose': `// Docker Compose in SYM
 
 { $db-name myapp
 , $db-user admin
@@ -408,9 +408,9 @@ const examples = {
 , :volumes
   { :pgdata
   }
-}\`,
+}`,
 
-  'Kubernetes': \`// Kubernetes Deployment
+  'Kubernetes': `// Kubernetes Deployment
 
 { $app web-api
 , $replicas 3
@@ -458,9 +458,9 @@ const examples = {
       }
     }
   }
-}\`,
+}`,
 
-  'Package.json': \`// Node.js package manifest
+  'Package.json': `// Node.js package manifest
 
 { :name @acme/billing-service
 , :version 3.2.0
@@ -490,9 +490,9 @@ const examples = {
 , :engines
   { :node >=20.0.0
   }
-}\`,
+}`,
 
-  'GitHub Actions': \`// GitHub Actions CI/CD
+  'GitHub Actions': `// GitHub Actions CI/CD
 
 { :name CI/CD Pipeline
 , :on
@@ -545,9 +545,9 @@ const examples = {
       ]
     }
   }
-}\`,
+}`,
 
-  'App Config': \`// Production app configuration
+  'App Config': `// Production app configuration
 
 { $env production
 , $region us-east-1
@@ -605,9 +605,9 @@ const examples = {
   , :ai-recs true
   , :beta-dash false
   }
-}\`,
+}`,
 
-  'API Response': \`// E-commerce Order Response
+  'API Response': `// E-commerce Order Response
 
 { :status :success
 , :data
@@ -651,9 +651,9 @@ const examples = {
       }
     }
   }
-}\`,
+}`,
 
-  'Tailwind': \`// Tailwind CSS Config
+  'Tailwind': `// Tailwind CSS Config
 
 { :content
   [ ./src/**/*.{js,tsx}
@@ -701,7 +701,7 @@ const examples = {
   [ @tailwindcss/forms
   , @tailwindcss/typography
   ]
-}\`,
+}`,
 };
 
 const exampleKeys = Object.keys(examples);
@@ -756,7 +756,7 @@ function Features() {
     features.map((f, i) => React.createElement('div', {
       key: f.title,
       className: 'glass rounded-xl p-6 hover:bg-white/10 transition-all animate-fadeIn',
-      style: { animationDelay: \`\${0.5 + i * 0.1}s\` }
+      style: { animationDelay: `${0.5 + i * 0.1}s` }
     },
       React.createElement('div', { className: 'text-4xl mb-3' }, f.icon),
       React.createElement('h3', { className: 'font-bold text-white mb-2 text-lg' }, f.title),
@@ -807,11 +807,11 @@ function Playground() {
       exampleKeys.map(name => React.createElement('button', {
         key: name,
         onClick: () => setSelected(name),
-        className: \`px-4 py-2 rounded-lg text-sm font-medium transition-all transform \${
+        className: `px-4 py-2 rounded-lg text-sm font-medium transition-all transform ${
           selected === name
             ? 'bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg scale-105'
             : 'bg-gray-800 text-gray-400 hover:bg-gray-700 hover:text-gray-200'
-        }\`
+        }`
       }, name))
     ),
 
@@ -864,7 +864,7 @@ function Playground() {
 // === COMPARISON ===
 function Comparison() {
   const examples = {
-    json: \`{
+    json: `{
   "name": "my-app",
   "address": "123 Main St, Apt 4",
   "database": {
@@ -872,16 +872,16 @@ function Comparison() {
     "port": 5432
   },
   "tags": ["api", "backend"]
-}\`,
-    yaml: \`name: my-app
+}`,
+    yaml: `name: my-app
 address: "123 Main St, Apt 4"  # Must quote!
 database:
   host: localhost
   port: 5432
 tags:
   - api
-  - backend\`,
-    sym: \`{ :name my-app
+  - backend`,
+    sym: `{ :name my-app
 , :address 123 Main St, Apt 4
 , :database
   { :host localhost
@@ -891,7 +891,7 @@ tags:
   [ api
   , backend
   ]
-}\`
+}`
   };
 
   return React.createElement('div', { className: 'mb-16' },
@@ -906,7 +906,7 @@ tags:
       ].map(([title, code, note]) =>
         React.createElement('div', {
           key: title,
-          className: \`glass rounded-xl overflow-hidden border \${title.includes('✨') ? 'border-green-500/50' : 'border-gray-700'}\`
+          className: `glass rounded-xl overflow-hidden border ${title.includes('✨') ? 'border-green-500/50' : 'border-gray-700'}`
         },
           React.createElement('div', { className: 'px-4 py-3 border-b border-gray-700 flex items-center justify-between' },
             React.createElement('span', { className: 'text-sm font-semibold text-white' }, title),
