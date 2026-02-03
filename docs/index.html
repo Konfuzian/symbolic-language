@@ -214,7 +214,36 @@ function tokenize(code) {
     else tokens.push({ type: 'string', value: word });
     i = j;
   }
-  return tokens;
+  // Post-process: if a value has mixed strings and numbers, treat all as string
+  return postProcessSymTokens(tokens);
+}
+
+function postProcessSymTokens(tokens) {
+  const result = [];
+  let i = 0;
+  while (i < tokens.length) {
+    if (tokens[i].type === 'key' || tokens[i].type === 'symbol') {
+      result.push(tokens[i]);
+      i++;
+      // Collect value tokens until newline or structure
+      const valueTokens = [];
+      while (i < tokens.length && tokens[i].type !== 'newline' && tokens[i].type !== 'bracket') {
+        valueTokens.push(tokens[i]);
+        i++;
+      }
+      // Check if mixed strings and numbers in value
+      const hasString = valueTokens.some(t => t.type === 'string');
+      const hasNumber = valueTokens.some(t => t.type === 'number');
+      if (hasString && hasNumber) {
+        valueTokens.forEach(t => { if (t.type === 'number') t.type = 'string'; });
+      }
+      result.push(...valueTokens);
+    } else {
+      result.push(tokens[i]);
+      i++;
+    }
+  }
+  return result;
 }
 
 // === TOKENIZER (JSON) ===
