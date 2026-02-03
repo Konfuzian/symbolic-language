@@ -4,25 +4,24 @@
 
 **[Live Demo →](https://konfuzian.github.io/symbolic-language/)**
 
-```sym
-// Application configuration
-{ :name my-app
-, :version 1.0.0
-, :database
-  { :host localhost
-  , :port 5432
-  , :credentials
-    { :user admin
-    , :password secret123
-    }
-  }
-, :features
-  [ :dark-mode
-  , :notifications
-  , :export
-  ]
-}
-```
+<pre><code><span style="color:#6a9955">// Application configuration</span>
+<span style="color:#ffd700">{</span> <span style="color:#9cdcfe">:name</span> <span style="color:#ce9178">my-app</span>
+<span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:version</span> <span style="color:#b5cea8">1.0.0</span>
+<span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:database</span>
+  <span style="color:#ffd700">{</span> <span style="color:#9cdcfe">:host</span> <span style="color:#ce9178">localhost</span>
+  <span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:port</span> <span style="color:#b5cea8">5432</span>
+  <span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:credentials</span>
+    <span style="color:#ffd700">{</span> <span style="color:#9cdcfe">:user</span> <span style="color:#ce9178">admin</span>
+    <span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:password</span> <span style="color:#ce9178">secret123</span>
+    <span style="color:#ffd700">}</span>
+  <span style="color:#ffd700">}</span>
+<span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:features</span>
+  <span style="color:#ffd700">[</span> <span style="color:#4ec9b0">:dark-mode</span>
+  <span style="color:#d4d4d4">,</span> <span style="color:#4ec9b0">:notifications</span>
+  <span style="color:#d4d4d4">,</span> <span style="color:#4ec9b0">:export</span>
+  <span style="color:#ffd700">]</span>
+<span style="color:#ffd700">}</span>
+</code></pre>
 
 ## Why SYM?
 
@@ -37,64 +36,61 @@
 
 **Key insight:** Commas inside your values are fine — only `\n,` (newline + comma) separates elements.
 
-```sym
-{ :address 123 Main St, Apt 4, New York, NY 10001
-, :message Hello, world!
-}
-```
+<pre><code><span style="color:#ffd700">{</span> <span style="color:#9cdcfe">:address</span> <span style="color:#ce9178">123 Main St, Apt 4, New York, NY 10001</span>
+<span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:message</span> <span style="color:#ce9178">Hello, world!</span>
+<span style="color:#ffd700">}</span>
+</code></pre>
 
 ## Quick Start
 
 ### Syntax at a Glance
 
-```sym
-// Line comments
-/* Block comments */
+<pre><code><span style="color:#6a9955">// Line comments</span>
+<span style="color:#6a9955">/* Block comments */</span>
 
-// Objects use { }
-{ :key value
-, :another-key another value
-}
+<span style="color:#6a9955">// Objects use { }</span>
+<span style="color:#ffd700">{</span> <span style="color:#9cdcfe">:key</span> <span style="color:#ce9178">value</span>
+<span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:another-key</span> <span style="color:#ce9178">another value</span>
+<span style="color:#ffd700">}</span>
 
-// Arrays use [ ]
-[ first item
-, second item
-, third item
-]
+<span style="color:#6a9955">// Arrays use [ ]</span>
+<span style="color:#ffd700">[</span> <span style="color:#ce9178">first item</span>
+<span style="color:#d4d4d4">,</span> <span style="color:#ce9178">second item</span>
+<span style="color:#d4d4d4">,</span> <span style="color:#ce9178">third item</span>
+<span style="color:#ffd700">]</span>
 
-// Variables
-{ $base-url https://api.example.com
-}
-{ :endpoint $base-url/users
-}
+<span style="color:#6a9955">// Variables</span>
+<span style="color:#ffd700">{</span> <span style="color:#c586c0">$base-url</span> <span style="color:#ce9178">https://api.example.com</span>
+<span style="color:#ffd700">}</span>
+<span style="color:#ffd700">{</span> <span style="color:#9cdcfe">:endpoint</span> <span style="color:#c586c0">$base-url</span><span style="color:#ce9178">/users</span>
+<span style="color:#ffd700">}</span>
 
-// Symbols (like enums)
-{ :status :active
-, :role :admin
-}
+<span style="color:#6a9955">// Symbols (like enums)</span>
+<span style="color:#ffd700">{</span> <span style="color:#9cdcfe">:status</span> <span style="color:#4ec9b0">:active</span>
+<span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:role</span> <span style="color:#4ec9b0">:admin</span>
+<span style="color:#ffd700">}</span>
 
-// Multiline strings (just indent)
-{ :description
-    This is a multiline string.
-    It continues on the next line.
-    Commas, like this, are preserved.
-}
-```
+<span style="color:#6a9955">// Multiline strings (just indent)</span>
+<span style="color:#ffd700">{</span> <span style="color:#9cdcfe">:description</span>
+    <span style="color:#ce9178">This is a multiline string.</span>
+    <span style="color:#ce9178">It continues on the next line.</span>
+    <span style="color:#ce9178">Commas, like this, are preserved.</span>
+<span style="color:#ffd700">}</span>
+</code></pre>
 
 ### Formatting Rules
 
 SYM is designed for **one key-value pair per line** with **leading commas**:
 
-```sym
-// ✅ Idiomatic SYM
-{ :name John
-, :age 30
-, :city New York
-}
+<pre><code><span style="color:#6a9955">// ✅ Idiomatic SYM</span>
+<span style="color:#ffd700">{</span> <span style="color:#9cdcfe">:name</span> <span style="color:#ce9178">John</span>
+<span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:age</span> <span style="color:#b5cea8">30</span>
+<span style="color:#d4d4d4">,</span> <span style="color:#9cdcfe">:city</span> <span style="color:#ce9178">New York</span>
+<span style="color:#ffd700">}</span>
 
-// ❌ Avoid inline style
-{ :name John, :age 30 }  // This parses as :name with value "John, :age 30"
-```
+<span style="color:#6a9955">// ❌ Avoid inline style</span>
+<span style="color:#ffd700">{</span> <span style="color:#9cdcfe">:name</span> <span style="color:#ce9178">John, :age 30</span> <span style="color:#ffd700">}</span>  <span style="color:#6a9955">// This parses as :name with value "John, :age 30"</span>
+</code></pre>
 
 ## Documentation
 
