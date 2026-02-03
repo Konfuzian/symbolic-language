@@ -86,6 +86,41 @@
       border-color: #3b82f6;
       box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
+
+    .code-editor-container {
+      position: relative;
+      height: 320px;
+    }
+
+    .code-editor-highlight {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow: auto;
+      pointer-events: none;
+    }
+
+    .code-editor-textarea {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      color: transparent;
+      caret-color: #f8f8f2;
+      resize: none;
+      border: none;
+      white-space: pre;
+      overflow-wrap: normal;
+      overflow: auto;
+    }
+
+    .code-editor-textarea::selection {
+      background: rgba(59, 130, 246, 0.4);
+    }
   </style>
 </head>
 <body>
@@ -444,29 +479,60 @@ function LiveEditor() {
 
   const [code, setCode] = useState(defaultCode);
   const [jsonOutput, setJsonOutput] = useState('');
+  const textareaRef = useRef(null);
+  const highlightRef = useRef(null);
 
   useEffect(() => {
     setJsonOutput(parseSym(code));
   }, [code]);
+
+  const handleScroll = (e) => {
+    if (highlightRef.current) {
+      highlightRef.current.scrollTop = e.target.scrollTop;
+      highlightRef.current.scrollLeft = e.target.scrollLeft;
+    }
+  };
+
+  // Render highlighted code
+  const renderHighlightedCode = () => {
+    const tokens = tokenize(code);
+    return tokens.map((t, i) => React.createElement('span', {
+      key: i,
+      style: { color: colors[t.type] || colors.default }
+    }, t.value));
+  };
 
   return React.createElement('div', { className: 'mb-12' },
     React.createElement('h2', { className: 'text-3xl font-bold mb-2 text-white' }, '✨ Try It Live'),
     React.createElement('p', { className: 'text-gray-400 mb-4' }, 'Edit the SYM code and see the structure update in real-time'),
 
     React.createElement('div', { className: 'grid grid-cols-1 lg:grid-cols-2 gap-4' },
-      // Left: Editor
+      // Left: Editor with syntax highlighting
       React.createElement('div', { className: 'bg-[#161b22] rounded-xl border border-gray-700 overflow-hidden' },
         React.createElement('div', { className: 'px-4 py-3 border-b border-gray-700 flex items-center justify-between' },
           React.createElement('span', { className: 'text-gray-400 text-sm font-medium' }, 'SYM Input'),
           React.createElement(CopyButton, { text: code, label: 'Copy' })
         ),
-        React.createElement('textarea', {
-          value: code,
-          onChange: (e) => setCode(e.target.value),
-          className: 'w-full h-80 bg-[#1e1e1e] text-gray-300 p-4 text-sm resize-none border-none',
-          style: { fontFamily: "'Fira Code', monospace" },
-          spellCheck: false
-        })
+        React.createElement('div', { className: 'code-editor-container bg-[#1e1e1e]' },
+          // Highlighted code layer (behind)
+          React.createElement('pre', {
+            ref: highlightRef,
+            className: 'code-editor-highlight p-4 text-[13px] leading-relaxed m-0',
+            style: { fontFamily: "'Fira Code', monospace" }
+          },
+            React.createElement('code', null, renderHighlightedCode())
+          ),
+          // Textarea layer (in front, transparent)
+          React.createElement('textarea', {
+            ref: textareaRef,
+            value: code,
+            onChange: (e) => setCode(e.target.value),
+            onScroll: handleScroll,
+            className: 'code-editor-textarea p-4 text-[13px] leading-relaxed',
+            style: { fontFamily: "'Fira Code', monospace" },
+            spellCheck: false
+          })
+        )
       ),
 
       // Right: JSON Output
