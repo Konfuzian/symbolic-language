@@ -1092,8 +1092,8 @@ const exampleKeys = Object.keys(examples);
 function Hero() {
   return React.createElement('div', { className: 'text-center mb-16 animate-fadeIn' },
     React.createElement('h1', {
-      className: 'text-6xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent',
-      style: { animationDelay: '0.1s' }
+      className: 'text-6xl md:text-7xl font-extrabold mb-6',
+      style: { animationDelay: '0.1s', color: '#1e3a5f' }
     },
       React.createElement('span', { className: 'block' }, 'SYM'),
       React.createElement('span', { className: 'block text-3xl md:text-4xl mt-2' }, 'The Symbolic Language')
@@ -1347,8 +1347,8 @@ function App() {
   return React.createElement('div', { className: 'min-h-screen bg-[#0d1117] text-gray-300' },
     React.createElement('div', { className: 'max-w-6xl mx-auto px-4 py-12 md:py-20' },
       React.createElement(Hero),
-      React.createElement(Features),
       React.createElement(LiveEditor),
+      React.createElement(Features),
       React.createElement(Playground),
       React.createElement(Comparison),
       React.createElement(Footer)

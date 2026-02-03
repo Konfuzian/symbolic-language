@@ -1,6 +1,6 @@
-# SYM
-
-Write config, not syntax.
+<p align="center">
+  <img src="assets/logo.svg" alt="SYM - Write config, not syntax." width="400">
+</p>
 
 **[Try it →](https://konfuzian.github.io/symbolic-language/)**
 

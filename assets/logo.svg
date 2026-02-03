@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80">
+  <text x="200" y="40" font-family="system-ui, -apple-system, sans-serif" font-size="48" font-weight="bold" fill="#1e3a5f" text-anchor="middle">SYM</text>
+  <text x="200" y="65" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="#1e3a5f" text-anchor="middle">Write config, not syntax.</text>
+</svg>
