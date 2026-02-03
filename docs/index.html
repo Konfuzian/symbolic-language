@@ -168,7 +168,8 @@ function tokenize(code) {
       continue;
     }
     let j = i;
-    while (j < code.length && !' \t\n{}[],:'.includes(code[j])) j++;
+    while (j < code.length && !' \t\n{}[],'.includes(code[j])) j++;
+    if (j === i) { tokens.push({ type: 'default', value: code[i] }); i++; continue; }
     const word = code.slice(i, j);
     if (word === 'true' || word === 'false') tokens.push({ type: 'boolean', value: word });
     else if (word === 'null') tokens.push({ type: 'null', value: word });
@@ -180,21 +181,181 @@ function tokenize(code) {
   return tokens;
 }
 
-// === MOCK JSON GENERATOR ===
-function symToJson(symCode) {
-  // This is a simplified mock - in production, use the Rust parser via WASM
+// === SYM PARSER ===
+function parseSym(code) {
+  let pos = 0;
+  const vars = {};
+
+  function skipWhitespaceAndComments() {
+    while (pos < code.length) {
+      if (code[pos] === ' ' || code[pos] === '\t' || code[pos] === '\n' || code[pos] === '\r') {
+        pos++;
+      } else if (code.slice(pos, pos + 2) === '//') {
+        while (pos < code.length && code[pos] !== '\n') pos++;
+      } else if (code.slice(pos, pos + 2) === '/*') {
+        pos += 2;
+        while (pos < code.length && code.slice(pos, pos + 2) !== '*/') pos++;
+        pos += 2;
+      } else if (code[pos] === ',') {
+        pos++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  function parseValue() {
+    skipWhitespaceAndComments();
+    if (pos >= code.length) return null;
+
+    const ch = code[pos];
+
+    // Object
+    if (ch === '{') {
+      pos++;
+      const obj = {};
+      while (true) {
+        skipWhitespaceAndComments();
+        if (pos >= code.length || code[pos] === '}') { pos++; break; }
+
+        // Variable definition: $name value
+        if (code[pos] === '$') {
+          pos++;
+          let varName = '';
+          while (pos < code.length && /[a-zA-Z0-9_-]/.test(code[pos])) {
+            varName += code[pos++];
+          }
+          skipWhitespaceAndComments();
+          const varVal = parseValue();
+          vars[varName] = varVal;
+          continue;
+        }
+
+        // Key: :name value
+        if (code[pos] === ':') {
+          pos++;
+          let key = '';
+          while (pos < code.length && /[a-zA-Z0-9_-]/.test(code[pos])) {
+            key += code[pos++];
+          }
+          skipWhitespaceAndComments();
+          obj[key] = parseValue();
+        } else {
+          break;
+        }
+      }
+      return obj;
+    }
+
+    // Array
+    if (ch === '[') {
+      pos++;
+      const arr = [];
+      while (true) {
+        skipWhitespaceAndComments();
+        if (pos >= code.length || code[pos] === ']') { pos++; break; }
+        arr.push(parseValue());
+      }
+      return arr;
+    }
+
+    // Variable reference
+    if (ch === '$') {
+      pos++;
+      let varName = '';
+      while (pos < code.length && /[a-zA-Z0-9_-]/.test(code[pos])) {
+        varName += code[pos++];
+      }
+      return vars[varName] !== undefined ? vars[varName] : '$' + varName;
+    }
+
+    // Symbol (enum-like keyword)
+    if (ch === ':') {
+      pos++;
+      let sym = '';
+      while (pos < code.length && /[a-zA-Z0-9_-]/.test(code[pos])) {
+        sym += code[pos++];
+      }
+      return sym;
+    }
+
+    // Escape sequence
+    if (ch === '\\') {
+      pos++;
+      let escaped = '';
+      while (pos < code.length && !' \t\n{}[],:'.includes(code[pos])) {
+        escaped += code[pos++];
+      }
+      return escaped;
+    }
+
+    // String/number/boolean/null - read until delimiter
+    let value = '';
+    let lineStart = pos;
+
+    // Find start of line for multiline detection
+    let i = pos - 1;
+    while (i >= 0 && code[i] !== '\n') i--;
+    const indent = pos - i - 1;
+
+    // Read first word
+    while (pos < code.length && !' \t\n{}[]'.includes(code[pos])) {
+      value += code[pos++];
+    }
+
+    // Check for multiline: if next lines have greater indent, append them
+    while (pos < code.length) {
+      if (code[pos] !== '\n') {
+        if (code[pos] === ' ' || code[pos] === '\t') {
+          pos++;
+          continue;
+        }
+        break;
+      }
+      // Look ahead for continuation
+      let nextLineStart = pos + 1;
+      let nextIndent = 0;
+      while (nextLineStart + nextIndent < code.length &&
+             (code[nextLineStart + nextIndent] === ' ' || code[nextLineStart + nextIndent] === '\t')) {
+        nextIndent++;
+      }
+      // Check if next line is a continuation (more indented and not a structure/key/comma)
+      const nextChar = code[nextLineStart + nextIndent];
+      if (nextIndent > indent && nextChar && !'{}[],:$'.includes(nextChar)) {
+        pos = nextLineStart + nextIndent;
+        value += '\n';
+        while (pos < code.length && !' \t\n{}[]'.includes(code[pos])) {
+          value += code[pos++];
+        }
+      } else {
+        break;
+      }
+    }
+
+    value = value.trim();
+
+    // Type coercion
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    if (value === 'null') return null;
+    if (value === 'inf') return Infinity;
+    if (value === '-inf') return -Infinity;
+    if (value === 'nan') return NaN;
+    if (/^-?\d+$/.test(value)) return parseInt(value, 10);
+    if (/^-?\d+\.\d+$/.test(value)) return parseFloat(value);
+    if (/^-?\d+\.?\d*[eE][+-]?\d+$/.test(value)) return parseFloat(value);
+    if (/^0x[\da-fA-F]+$/.test(value)) return parseInt(value, 16);
+    if (/^0b[01]+$/.test(value)) return parseInt(value.slice(2), 2);
+    if (/^0o[0-7]+$/.test(value)) return parseInt(value.slice(2), 8);
+
+    return value;
+  }
+
   try {
-    // Basic structure detection
-    const trimmed = symCode.trim();
-    if (trimmed.startsWith('{') && trimmed.includes(':')) {
-      return '{\n  "note": "Full parsing requires the SYM parser",\n  "structure": "object detected",\n  "keys": [...]\n}';
-    }
-    if (trimmed.startsWith('[')) {
-      return '[\n  "Full parsing requires the SYM parser",\n  "array detected"\n]';
-    }
-    return '{\n  "info": "Type SYM code to see structure"\n}';
+    const result = parseValue();
+    return JSON.stringify(result, null, 2);
   } catch (e) {
-    return '{\n  "error": "Invalid SYM syntax"\n}';
+    return JSON.stringify({ error: 'Parse error: ' + e.message }, null, 2);
   }
 }
 
@@ -286,11 +447,11 @@ function LiveEditor() {
   const [jsonOutput, setJsonOutput] = useState('');
 
   useEffect(() => {
-    setJsonOutput(symToJson(code));
+    setJsonOutput(parseSym(code));
   }, [code]);
 
   return React.createElement('div', { className: 'mb-12' },
-    React.createElement('h2', { className: 'text-2xl font-bold mb-4 text-white' }, '✨ Try It Live'),
+    React.createElement('h2', { className: 'text-3xl font-bold mb-2 text-white' }, '✨ Try It Live'),
     React.createElement('p', { className: 'text-gray-400 mb-4' }, 'Edit the SYM code and see the structure update in real-time'),
 
     React.createElement('div', { className: 'grid grid-cols-1 lg:grid-cols-2 gap-4' },
@@ -323,12 +484,12 @@ function LiveEditor() {
     ),
 
     React.createElement('p', { className: 'mt-3 text-xs text-gray-500' },
-      '💡 Note: Full parsing requires the ',
+      '💡 For production use, see the ',
       React.createElement('a', {
         href: 'https://github.com/Konfuzian/symbolic-language/tree/main/parsers/rust',
         className: 'text-blue-400 hover:underline'
       }, 'Rust parser'),
-      '. This demo shows a simplified structure.'
+      '.'
     )
   );
 }
@@ -712,7 +873,10 @@ function Hero() {
     React.createElement('h1', {
       className: 'text-6xl md:text-7xl font-extrabold mb-6 bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent',
       style: { animationDelay: '0.1s' }
-    }, 'SYM'),
+    },
+      React.createElement('span', { className: 'block' }, 'SYM'),
+      React.createElement('span', { className: 'block text-3xl md:text-4xl mt-2' }, 'symbolic language')
+    ),
     React.createElement('p', {
       className: 'text-xl md:text-2xl text-gray-300 mb-4',
       style: { animationDelay: '0.2s' }
