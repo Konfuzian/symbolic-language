@@ -1,6 +1,6 @@
 # SYM
 
-A config format where commas in your values just work.
+Write config, not syntax.
 
 **[Try it →](https://konfuzian.github.io/symbolic-language/)**
 
