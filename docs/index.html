@@ -304,15 +304,13 @@ function parseSym(code) {
       value += code[pos++];
     }
 
+    // Read rest of same line (for values like "John Doe")
+    while (pos < code.length && !'\n{}[]'.includes(code[pos])) {
+      value += code[pos++];
+    }
+
     // Check for multiline: if next lines have greater indent, append them
-    while (pos < code.length) {
-      if (code[pos] !== '\n') {
-        if (code[pos] === ' ' || code[pos] === '\t') {
-          pos++;
-          continue;
-        }
-        break;
-      }
+    while (pos < code.length && code[pos] === '\n') {
       // Look ahead for continuation
       let nextLineStart = pos + 1;
       let nextIndent = 0;
@@ -325,7 +323,7 @@ function parseSym(code) {
       if (nextIndent > indent && nextChar && !'{}[],:$'.includes(nextChar)) {
         pos = nextLineStart + nextIndent;
         value += '\n';
-        while (pos < code.length && !' \t\n{}[]'.includes(code[pos])) {
+        while (pos < code.length && !'\n{}[]'.includes(code[pos])) {
           value += code[pos++];
         }
       } else {
@@ -914,9 +912,9 @@ function Features() {
     { icon: '🔢', title: 'Auto Types', desc: 'Numbers, booleans, and null are detected automatically. No manual type annotations.' },
     { icon: '📊', title: 'Git Diff Friendly', desc: 'Leading commas mean adding/removing lines only changes one line in diffs.' },
     { icon: '🔓', title: 'Backslash Freedom', desc: 'Use \\ for escapes like \\n \\t or literal values. No more path escaping nightmares.' },
-    { icon: '🎯', title: 'Clear Nesting', desc: 'Brackets make structure obvious at any depth.' },
+    { icon: '🎯', title: 'Clear Nesting', desc: 'Brackets make structure obvious at any depth. Leading commas align vertically, making nesting levels easy to scan.' },
     { icon: '💎', title: 'Variables', desc: 'Define once, use everywhere with $var syntax. DRY principle.' },
-    { icon: '🏷️', title: 'Symbols', desc: 'Enum-like :keywords for status, types, modes.' },
+    { icon: '🏷️', title: 'Symbols', desc: 'Enum-like :keywords like :pending, :success, :error for status fields; :admin, :user, :guest for roles; :dark, :light for themes. Self-documenting and typo-resistant.' },
     { icon: '💬', title: 'Comments', desc: '// line and /* block */ comments fully supported.' },
   ];
 
