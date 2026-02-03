@@ -103,9 +103,8 @@
 
 | Syntax | Meaning | Example |
 |--------|---------|---------|
-| `:key` | Merge (default) | `:database { :host localhost }` |
+| `:key` | Merge (objects) / append (arrays) | `:database { :host localhost }` |
 | `:key!` | Replace entirely | `:logging! { :driver datadog }` |
-| `:key+` | Append to array | `:plugins+ [ :cache ]` |
 | `$var!` | Override variable | `$port! 9000` |
 
 ## Escaping (Only at Value Start)

@@ -380,9 +380,9 @@ Without `!`, inherited fields like `:level`, `:format`, `:output` would leak int
 
 ---
 
-### Append Arrays with `+`
+### Array Merging (Append by Default)
 
-Use `:key+` to append to an array instead of replacing:
+Arrays are appended by default when merging:
 
 ```
 // base.sym
@@ -397,7 +397,7 @@ Use `:key+` to append to an array instead of replacing:
 // extended.sym
 @import ./base.sym
 
-{ :plugins+
+{ :plugins
   [ :cache
   , :ratelimit
   ]
@@ -415,15 +415,16 @@ Use `:key+` to append to an array instead of replacing:
 }
 ```
 
+Use `:key!` if you want to replace the array entirely instead of appending.
+
 ---
 
 ### Modifier Summary
 
 | Syntax | Meaning |
 |--------|---------|
-| `:key` | Deep merge (default) |
+| `:key` | Deep merge (objects) / append (arrays) |
 | `:key!` | Replace entirely (no inherited fields) |
-| `:key+` | Append to array |
 | `$var!` | Override variable |
 
 ---
@@ -524,7 +525,7 @@ data         = value
 value        = object | array | string | number | boolean | null | symbol | variable
 
 object       = '{' (field separator)* '}'
-field        = ':' identifier ('!' | '+')? value?  // ! = replace, + = append
+field        = ':' identifier '!'? value?           // ! = replace
 
 array        = '[' (value separator)* ']'
 

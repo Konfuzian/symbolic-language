@@ -143,7 +143,7 @@ const colors = {
   default: '#d4d4d4',
 };
 
-// === TOKENIZER ===
+// === TOKENIZER (SYM) ===
 function tokenize(code) {
   const tokens = [];
   let i = 0;
@@ -215,6 +215,126 @@ function tokenize(code) {
     i = j;
   }
   return tokens;
+}
+
+// === TOKENIZER (JSON) ===
+function tokenizeJson(code) {
+  const tokens = [];
+  let i = 0;
+  while (i < code.length) {
+    if (code[i] === '\n') { tokens.push({ type: 'newline', value: '\n' }); i++; continue; }
+    if (' \t'.includes(code[i])) {
+      let j = i;
+      while (j < code.length && ' \t'.includes(code[j])) j++;
+      tokens.push({ type: 'default', value: code.slice(i, j) });
+      i = j;
+      continue;
+    }
+    if ('{}[]'.includes(code[i])) { tokens.push({ type: 'bracket', value: code[i] }); i++; continue; }
+    if (','.includes(code[i])) { tokens.push({ type: 'default', value: code[i] }); i++; continue; }
+    if (code[i] === ':') { tokens.push({ type: 'default', value: code[i] }); i++; continue; }
+    if (code[i] === '"') {
+      let j = i + 1;
+      while (j < code.length && code[j] !== '"') {
+        if (code[j] === '\\') j++;
+        j++;
+      }
+      j++;
+      const str = code.slice(i, j);
+      // Check if this is a key (followed by colon)
+      let k = j;
+      while (k < code.length && ' \t'.includes(code[k])) k++;
+      if (code[k] === ':') {
+        tokens.push({ type: 'key', value: str });
+      } else {
+        tokens.push({ type: 'string', value: str });
+      }
+      i = j;
+      continue;
+    }
+    // Numbers, booleans, null
+    let j = i;
+    while (j < code.length && !' \t\n{}[],:"'.includes(code[j])) j++;
+    if (j > i) {
+      const word = code.slice(i, j);
+      if (word === 'true' || word === 'false') tokens.push({ type: 'boolean', value: word });
+      else if (word === 'null') tokens.push({ type: 'null', value: word });
+      else if (/^-?\d+\.?\d*([eE][+-]?\d+)?$/.test(word)) tokens.push({ type: 'number', value: word });
+      else tokens.push({ type: 'default', value: word });
+      i = j;
+    } else {
+      tokens.push({ type: 'default', value: code[i] });
+      i++;
+    }
+  }
+  return tokens;
+}
+
+// === TOKENIZER (YAML) ===
+function tokenizeYaml(code) {
+  const tokens = [];
+  const lines = code.split('\n');
+  lines.forEach((line, lineIndex) => {
+    if (lineIndex > 0) tokens.push({ type: 'newline', value: '\n' });
+    let i = 0;
+    // Leading whitespace
+    while (i < line.length && ' \t'.includes(line[i])) {
+      tokens.push({ type: 'default', value: line[i] });
+      i++;
+    }
+    // Comment
+    if (line[i] === '#') {
+      tokens.push({ type: 'comment', value: line.slice(i) });
+      return;
+    }
+    // List marker
+    if (line[i] === '-' && (i + 1 >= line.length || line[i + 1] === ' ')) {
+      tokens.push({ type: 'bracket', value: '-' });
+      i++;
+      if (line[i] === ' ') { tokens.push({ type: 'default', value: ' ' }); i++; }
+    }
+    // Key: value
+    const colonIndex = line.indexOf(':', i);
+    if (colonIndex !== -1 && colonIndex < line.length) {
+      const beforeColon = line.slice(i, colonIndex);
+      if (beforeColon && !/["']/.test(beforeColon[0])) {
+        tokens.push({ type: 'key', value: beforeColon });
+        tokens.push({ type: 'default', value: ':' });
+        i = colonIndex + 1;
+        if (line[i] === ' ') { tokens.push({ type: 'default', value: ' ' }); i++; }
+      }
+    }
+    // Rest of line (value)
+    if (i < line.length) {
+      const rest = line.slice(i);
+      // Check for inline comment
+      const commentMatch = rest.match(/^(.*?)\s+(#.*)$/);
+      if (commentMatch) {
+        const [, value, comment] = commentMatch;
+        tokenizeYamlValue(value, tokens);
+        tokens.push({ type: 'default', value: '  ' });
+        tokens.push({ type: 'comment', value: comment });
+      } else {
+        tokenizeYamlValue(rest, tokens);
+      }
+    }
+  });
+  return tokens;
+}
+
+function tokenizeYamlValue(value, tokens) {
+  const trimmed = value.trim();
+  if (trimmed === 'true' || trimmed === 'false') {
+    tokens.push({ type: 'boolean', value: value });
+  } else if (trimmed === 'null' || trimmed === '~') {
+    tokens.push({ type: 'null', value: value });
+  } else if (/^-?\d+\.?\d*$/.test(trimmed)) {
+    tokens.push({ type: 'number', value: value });
+  } else if (/^["'].*["']$/.test(trimmed)) {
+    tokens.push({ type: 'string', value: value });
+  } else {
+    tokens.push({ type: 'string', value: value });
+  }
 }
 
 // === SYM PARSER ===
@@ -437,8 +557,10 @@ function withLineNumbers(code) {
 }
 
 // === HIGHLIGHT COMPONENT ===
-function Highlight({ code, showLineNumbers = false }) {
-  const tokens = tokenize(code);
+function Highlight({ code, showLineNumbers = false, language = 'sym' }) {
+  const tokenizers = { sym: tokenize, json: tokenizeJson, yaml: tokenizeYaml };
+  const tokenizer = tokenizers[language] || tokenize;
+  const tokens = tokenizer(code);
   if (showLineNumbers) {
     const lines = code.split('\n');
     return React.createElement('pre', {
@@ -448,7 +570,7 @@ function Highlight({ code, showLineNumbers = false }) {
       lines.map((line, i) => React.createElement('div', { key: i, className: 'flex' },
         React.createElement('span', { className: 'inline-block w-8 text-right pr-3 text-gray-600 select-none border-r border-gray-700 mr-3' }, i + 1),
         React.createElement('code', null,
-          tokenize(line).map((t, j) => React.createElement('span', {
+          tokenizer(line).map((t, j) => React.createElement('span', {
             key: j,
             style: { color: colors[t.type] || colors.default }
           }, t.value))
@@ -980,7 +1102,7 @@ function Features() {
     { icon: '🔓', title: 'Backslash Freedom', desc: 'Use \\ for escapes like \\n \\t or literal values. No more path escaping nightmares.' },
     { icon: '🎯', title: 'Clear Nesting', desc: 'Brackets make structure obvious at any depth. Leading commas align vertically, making nesting levels easy to scan.' },
     { icon: '💎', title: 'Variables', desc: 'Define once, use everywhere with $var syntax. DRY principle.' },
-    { icon: '🏷️', title: 'Symbols', desc: 'Use :keywords for enums, status codes, types, and tags. Self-documenting and typo-resistant.' },
+    { icon: '🏷️', title: 'Symbols', desc: 'Use :keywords for enums, status codes, types, tags, or anything else that fits. Self-documenting and typo-resistant.' },
     { icon: '💬', title: 'Comments', desc: '// line and /* block */ comments fully supported.' },
   ];
 
@@ -1134,22 +1256,21 @@ tags:
 
     React.createElement('div', { className: 'grid grid-cols-1 md:grid-cols-3 gap-4' },
       [
-        ['JSON', examples.json, 'Requires quotes, no inline commas'],
-        ['YAML', examples.yaml, 'Indentation-sensitive, must quote commas'],
-        ['SYM ✨', examples.sym, 'No quotes, inline commas safe']
-      ].map(([title, code, note]) =>
+        ['SYM', examples.sym, 'sym', 'No quotes, inline commas safe'],
+        ['JSON', examples.json, 'json', 'Requires quotes, no inline commas'],
+        ['YAML', examples.yaml, 'yaml', 'Indentation-sensitive, must quote commas']
+      ].map(([title, code, lang, note]) =>
         React.createElement('div', {
           key: title,
-          className: `glass rounded-xl overflow-hidden border ${title.includes('✨') ? 'border-green-500/50' : 'border-gray-700'}`
+          className: `glass rounded-xl overflow-hidden border ${title === 'SYM' ? 'border-green-500/50' : 'border-gray-700'}`
         },
           React.createElement('div', { className: 'px-4 py-3 border-b border-gray-700 flex items-center justify-between' },
             React.createElement('span', { className: 'text-sm font-semibold text-white' }, title),
             React.createElement(CopyButton, { text: code, label: 'Copy' })
           ),
-          React.createElement('pre', {
-            className: 'p-4 text-xs text-gray-300 overflow-auto bg-[#1e1e1e] h-64',
-            style: { fontFamily: "'Fira Code', monospace" }
-          }, code),
+          React.createElement('div', { className: 'h-64 overflow-auto' },
+            React.createElement(Highlight, { code: code, language: lang })
+          ),
           React.createElement('div', { className: 'px-4 py-2 bg-gray-900/50 text-xs text-gray-500' }, note)
         )
       )

@@ -156,7 +156,7 @@ Claude will:
 1. Identify common settings for base.sym
 2. Create environment-specific overrides
 3. Use @import directives
-4. Add ! and + modifiers where needed
+4. Add `!` modifier where replacement is needed
 5. Ensure variables are properly scoped
 ```
 
@@ -246,7 +246,7 @@ A: Claude can run `sym-parser` commands if the tool is installed.
 A: Yes, Claude can convert and explain the migration process.
 
 **Q: Does Claude understand import merging?**
-A: Yes, Claude knows the merge rules, `!` and `+` modifiers.
+A: Yes, Claude knows the merge rules and the `!` modifier.
 
 ## Getting Help
 
@@ -283,7 +283,7 @@ comments explaining each section."
 ### Validation Rules
 
 ```
-"Check if all required variables are defined and all :key+ modifiers
+"Check if all required variables are defined and all modifiers
 are used correctly."
 ```
 
