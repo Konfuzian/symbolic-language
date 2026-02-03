@@ -1,41 +1,8 @@
 # SYM
 
-**A data format for humans.** Less syntax, more clarity.
+A config format where commas in your values just work.
 
-**[Live Demo →](https://konfuzian.github.io/symbolic-language/)**
-
-```sym
-// Application configuration
-{ :name my-app
-, :version 1.0.0
-, :database
-  { :host localhost
-  , :port 5432
-  , :credentials
-    { :user admin
-    , :password secret123
-    }
-  }
-, :features
-  [ :dark-mode
-  , :notifications
-  , :export
-  ]
-}
-```
-
-## Why SYM?
-
-| Feature | JSON | YAML | TOML | SYM |
-|---------|------|------|------|-----|
-| No quotes needed | ❌ | ✅ | Partial | ✅ |
-| Inline commas safe | ❌ | ❌ | ❌ | ✅ |
-| Clear nesting | ❌ | ❌ | ❌ | ✅ |
-| Comments | ❌ | ✅ | ✅ | ✅ |
-| Variables | ❌ | Anchors | ❌ | ✅ |
-| Symbols/Enums | ❌ | ❌ | ❌ | ✅ |
-
-**Key insight:** Commas inside your values are fine — only `\n,` (newline + comma) separates elements.
+**[Try it →](https://konfuzian.github.io/symbolic-language/)**
 
 ```sym
 { :address 123 Main St, Apt 4, New York, NY 10001
@@ -43,165 +10,79 @@
 }
 ```
 
-## Quick Start
+No escaping. No quotes. The comma in "Apt 4, New York" is preserved as-is.
 
-### Syntax at a Glance
+## How it works
+
+Only `newline + comma` separates entries. Commas anywhere else are just text.
 
 ```sym
-// Line comments
-/* Block comments */
+{ :name my-app
+, :version 1.0.0
+, :features
+  [ dark-mode
+  , notifications
+  ]
+}
+```
 
-// Objects use { }
+## The basics
+
+```sym
+// Objects
 { :key value
-, :another-key another value
+, :another another value
 }
 
-// Arrays use [ ]
+// Arrays
 [ first item
 , second item
-, third item
 ]
 
 // Variables
-{ $base-url https://api.example.com
-}
-{ :endpoint $base-url/users
-}
-
-// Symbols (like enums)
-{ :status :active
-, :role :admin
+{ $api https://api.example.com
+, :endpoint $api/users
 }
 
-// Multiline strings (just indent)
-{ :description
-    This is a multiline string.
-    It continues on the next line.
-    Commas, like this, are preserved.
+// Symbols (enums)
+{ :status :active }
+
+// Multiline (just indent)
+{ :bio
+    Software engineer.
+    Likes coffee, code, and commas.
 }
+
+// Comments
+// line comment
+/* block comment */
 ```
 
-### Formatting Rules
+## Install
 
-SYM is designed for **one key-value pair per line** with **leading commas**:
-
-```sym
-// ✅ Idiomatic SYM
-{ :name John
-, :age 30
-, :city New York
-}
-
-// ❌ Avoid inline style
-{ :name John, :age 30 }  // This parses as :name with value "John, :age 30"
-```
-
-## Documentation
-
-### Getting Started
-- **[Live Playground](https://konfuzian.github.io/symbolic-language/)** — Interactive demo with syntax highlighting
-- **[Cheatsheet](docs/CHEATSHEET.md)** — Quick syntax reference (2 min read)
-- **[Examples](examples/)** — Real-world configuration files
-
-### Complete Reference
-- **[Full Specification](spec/SPEC.md)** — Complete language reference
-- **[Documentation Hub](docs/)** — All guides and references
-
-### For AI Assistants
-- **[Claude Guide](docs/CLAUDE.md)** — Comprehensive guide for AI assistants
-- **[Usage Guide](docs/USAGE.md)** — Working with Claude and SYM files
-
-## Implementations
-
-### Rust Parser
-
-A complete parser with CLI and library API.
-
+**Rust CLI:**
 ```bash
-cd parsers/rust
-cargo build --release
-
-# Parse a file
-sym-parser config.sym
-
-# Convert from JSON
-sym-parser --from-json config.json
-
-# Output as JSON
-sym-parser config.sym --json
+cd parsers/rust && cargo install --path .
+sym-parser config.sym          # parse
+sym-parser config.sym --json   # output JSON
+sym-parser --from-json in.json # convert from JSON
 ```
 
-See [parsers/rust/](parsers/rust/) for details.
+## Docs
 
-### JavaScript Syntax Highlighter
+- [Cheatsheet](docs/CHEATSHEET.md) — 2 min syntax reference
+- [Full Spec](spec/SPEC.md) — Complete language reference
+- [Examples](examples/) — Real configs (Docker, K8s, package.json, etc.)
 
-A React component for syntax highlighting SYM code.
+## Why not JSON/YAML/TOML?
 
-```jsx
-import SymHighlight from './sym-highlight';
+**JSON**: No comments, quotes everywhere, trailing comma errors.
 
-<SymHighlight code={symCode} />
-```
+**YAML**: Indentation-sensitive in subtle ways. [Norway problem](https://hitchdev.com/strictyaml/why/implicit-typing-removed/). Anchors are confusing.
 
-See [parsers/js/](parsers/js/) for details.
+**TOML**: Great for flat configs, awkward for deep nesting.
 
-## Test Suite
-
-A comprehensive language-agnostic test suite ensures consistency across all parser implementations.
-
-### Running Tests
-
-**Rust:**
-```bash
-cd tests/harness/rust
-./run.sh
-```
-
-**JavaScript:**
-```bash
-cd tests/harness/js
-npm test
-```
-
-**Python:**
-Ready for implementation - see [tests/harness/python/](tests/harness/python/)
-
-### Test Coverage
-
-54 test cases covering:
-- **Basic types** — Objects, arrays, strings, numbers, booleans, null
-- **Strings** — Multiline, special characters, comma handling
-- **Complex structures** — Nested objects/arrays, mixed types
-- **Variables** — Definition, substitution, scoping
-- **Symbols** — Enum-like values, symbol syntax
-- **Comments** — Line and block comments
-- **Edge cases** — Unicode, whitespace handling
-- **Error handling** — 22 invalid input scenarios
-
-See [tests/](tests/) for the complete test suite and [tests/README.md](tests/README.md) for documentation.
-
-## Examples
-
-The [examples/](examples/) directory contains real-world configurations:
-
-- `simple-config.sym` — Basic application config
-- `docker-compose.sym` — Docker Compose equivalent
-- `kubernetes-deployment.sym` — Kubernetes manifest
-- `package.sym` — Node.js package.json equivalent
-- `github-actions.sym` — CI/CD pipeline
-- `app-config.sym` — Production application config
-- `api-response.sym` — REST API response
-- `tailwind-config.sym` — Tailwind CSS config
-- `eslint-config.sym` — ESLint configuration
-- `aws-infrastructure.sym` — Terraform-like AWS config
-
-## Design Principles
-
-1. **Human-first** — Optimized for reading and writing by humans
-2. **Unambiguous** — Clear structure through brackets and indentation
-3. **Safe strings** — Inline commas don't break your data
-4. **DRY** — Variables prevent repetition
-5. **Typed where useful** — Numbers, booleans, symbols, null detected automatically
+**SYM**: Brackets make structure explicit. Commas in values are safe. Variables built-in.
 
 ## License
 
