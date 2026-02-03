@@ -1,0 +1,5 @@
+{
+  "name": "Unicode Support",
+  "description": "Unicode characters in strings, keys, and values including emoji, various languages, special characters, and symbols",
+  "category": "edge-cases"
+}

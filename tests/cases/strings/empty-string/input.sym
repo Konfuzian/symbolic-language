@@ -1,0 +1,8 @@
+// Test empty string values
+
+{ :empty
+, :also-empty
+, :name Alice
+, :blank
+, :age 30
+}

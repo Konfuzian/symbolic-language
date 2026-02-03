@@ -1,0 +1,5 @@
+{
+  "description": "Multiline strings preserve newlines between lines. Lines accumulate until the next separator (newline+comma) or closing bracket. Blank lines within the string are also preserved.",
+  "category": "strings",
+  "test_type": "parse"
+}

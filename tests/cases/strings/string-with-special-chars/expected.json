@@ -1,0 +1,14 @@
+{
+  "url": "https://example.com/path?query=value&other=123",
+  "image": "nginx:alpine",
+  "email": "user@example.com",
+  "path": "/usr/local/bin",
+  "windows-path": "C:\\Users\\Admin\\Documents",
+  "symbols": "!@#$%^&*()_+-=[]{}|;':\"<>?",
+  "unicode": "Hello 世界 🌍",
+  "mixed": "foo@bar.com, baz#123, test:value",
+  "brackets": "This {has} [brackets] in (it)",
+  "price": "$99.99",
+  "percentage": "75%",
+  "math": "2+2=4, 10-5=5, 3*3=9"
+}

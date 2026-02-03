@@ -1,0 +1,5 @@
+{
+  "description": "Keys with no value default to empty string. This tests that empty strings are properly parsed and distinguished from null.",
+  "category": "strings",
+  "test_type": "parse"
+}

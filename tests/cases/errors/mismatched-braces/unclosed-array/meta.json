@@ -1,0 +1,3 @@
+{
+  "description": "Array missing closing bracket - should detect unclosed array at end of file"
+}

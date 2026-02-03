@@ -1,0 +1,5 @@
+{
+  "name": "Block Comments",
+  "description": "Multi-line block comments using /* */ syntax, including inline and spanning multiple lines",
+  "category": "comments"
+}

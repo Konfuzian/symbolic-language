@@ -1,0 +1,5 @@
+{
+  "name": "Symbol vs String",
+  "description": "Demonstrates the difference between symbols (colon at start) and strings (colon mid-value or no colon)",
+  "category": "symbols"
+}

@@ -1,0 +1,4 @@
+{ :name Alice
+/* This is a comment
+, :age 28
+}

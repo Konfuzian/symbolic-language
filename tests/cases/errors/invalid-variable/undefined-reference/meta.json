@@ -1,0 +1,3 @@
+{
+  "description": "Reference to undefined variable - should detect $user is never defined"
+}

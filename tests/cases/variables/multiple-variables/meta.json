@@ -1,0 +1,5 @@
+{
+  "name": "Multiple Variables",
+  "description": "Multiple variable definitions in a single defs block, used across nested objects",
+  "category": "variables"
+}

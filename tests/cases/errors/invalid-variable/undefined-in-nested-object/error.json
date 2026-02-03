@@ -1,0 +1,5 @@
+{
+  "type": "VariableError",
+  "messagePattern": "(undefined|unknown|not defined).*\\$db_port",
+  "line": 5
+}

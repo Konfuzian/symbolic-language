@@ -1,0 +1,29 @@
+{ :standard-spacing normal value
+
+, :blank-line-before-field works fine
+
+, :multiline-value
+    Line one with leading spaces
+    Line two with leading spaces
+    Line three
+
+, :preserved-indent
+\   This line has preserved indent
+\   This one too
+
+, :mixed-indent
+    Normal stripped indent
+\   Preserved indent with backslash
+    Normal again
+
+, :trailing-spaces-stripped value with trailing
+
+, :empty-lines-in-multiline
+    First line
+
+    Third line (blank line above)
+
+    Fifth line
+
+, :compact-object { :nested value, :another one }
+}

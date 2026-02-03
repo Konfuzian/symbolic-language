@@ -1,0 +1,10 @@
+{
+  "positive_exp": 1.5e10,
+  "negative_exp": 2.5e-5,
+  "integer_exp": 3e8,
+  "large": 9.99e20,
+  "small": 1e-10,
+  "negative_value": -5.5e12,
+  "zero_exp": 0e0,
+  "capital_E": 1.23E5
+}

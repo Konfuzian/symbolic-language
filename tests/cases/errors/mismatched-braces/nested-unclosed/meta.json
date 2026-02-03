@@ -1,0 +1,3 @@
+{
+  "description": "Nested object missing closing brace - should detect unclosed nested structure"
+}

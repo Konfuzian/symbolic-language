@@ -1,0 +1,5 @@
+{
+  "name": "Variable Substitution in Context",
+  "description": "Variables used in different contexts - within strings, arrays, and nested objects",
+  "category": "variables"
+}

@@ -1,0 +1,3 @@
+{
+  "description": "Duplicate variable definition without override - should detect $port defined twice without !"
+}

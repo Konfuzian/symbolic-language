@@ -1,0 +1,13 @@
+{ $domain example.com
+, $protocol https
+}
+{ :config
+  { :api-url $protocol://api.$domain
+  , :cdn-url $protocol://cdn.$domain
+  , :website $protocol://www.$domain
+  , :services
+    [ $protocol://$domain/api
+    , $protocol://$domain/auth
+    ]
+  }
+}

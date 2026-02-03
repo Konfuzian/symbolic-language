@@ -1,0 +1,5 @@
+{
+  "name": "Mixed Comments",
+  "description": "Both line comments (//) and block comments (/* */) used throughout the same file",
+  "category": "comments"
+}

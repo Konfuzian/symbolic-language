@@ -1,0 +1,18 @@
+// Test multiline strings with indentation
+
+{ :poem
+    Roses are red
+    Violets are blue
+    No comma-newline here
+    So it's all one value
+, :description
+    This is a multiline description.
+    It can span multiple lines.
+    Commas, like this one, are preserved inline.
+    Lines continue until the next separator.
+, :code
+    def hello():
+\       print("hello")
+\       return True
+, :author Anonymous
+}

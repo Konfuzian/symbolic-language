@@ -1,0 +1,11 @@
+[ 42
+, Hello World
+, true
+, null
+, 3.14
+, { :key value }
+, [ 1, 2, 3 ]
+, false
+, -99
+, 2.5e3
+]

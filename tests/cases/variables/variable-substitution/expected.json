@@ -1,0 +1,11 @@
+{
+  "config": {
+    "api-url": "https://api.example.com",
+    "cdn-url": "https://cdn.example.com",
+    "website": "https://www.example.com",
+    "services": [
+      "https://example.com/api",
+      "https://example.com/auth"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "pi": 3.14159,
+  "e": 2.71828,
+  "negative": -99.99,
+  "small": 0.001,
+  "zero_float": 0.0,
+  "fraction": 0.5,
+  "precise": 123.456789,
+  "negative_small": -0.00001
+}

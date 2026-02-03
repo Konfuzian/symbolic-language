@@ -1,0 +1,19 @@
+{
+  "name": "sym-test-harness",
+  "version": "1.0.0",
+  "description": "Test harness for SYM format parser",
+  "type": "module",
+  "main": "test-runner.js",
+  "scripts": {
+    "test": "node test-runner.js",
+    "test:verbose": "node test-runner.js --verbose"
+  },
+  "keywords": [
+    "sym",
+    "parser",
+    "test"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {}
+}

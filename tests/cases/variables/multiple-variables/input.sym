@@ -1,0 +1,12 @@
+{ $env production
+, $port 8080
+, $host localhost
+}
+{ :config
+  { :environment $env
+  , :server
+    { :host $host
+    , :port $port
+    }
+  }
+}

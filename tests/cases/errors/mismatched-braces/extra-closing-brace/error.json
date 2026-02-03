@@ -1,0 +1,5 @@
+{
+  "type": "ParseError",
+  "messagePattern": "(unexpected|extra).*}",
+  "line": 4
+}

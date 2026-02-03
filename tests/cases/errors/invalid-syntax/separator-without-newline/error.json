@@ -1,0 +1,6 @@
+{
+  "type": "SyntaxError",
+  "messagePattern": "(unexpected|invalid).*,",
+  "line": 1,
+  "column": 20
+}

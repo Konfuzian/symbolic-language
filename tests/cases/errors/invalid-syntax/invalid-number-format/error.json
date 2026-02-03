@@ -1,0 +1,5 @@
+{
+  "type": "SyntaxError",
+  "messagePattern": "(invalid|malformed|unexpected).*number",
+  "line": 2
+}

@@ -1,0 +1,8 @@
+{ :positive 42
+, :negative -100
+, :zero 0
+, :large 999999
+, :small_negative -1
+, :max_safe_int 9007199254740991
+, :min_safe_int -9007199254740991
+}

@@ -1,0 +1,3 @@
+{
+  "description": "Trailing comma in object - should detect comma before closing brace with no following field"
+}

@@ -1,0 +1,28 @@
+{ :strings
+  { :emoji Hello 👋 World 🌍
+  , :chinese 你好世界
+  , :japanese こんにちは世界
+  , :korean 안녕하세요
+  , :arabic مرحبا بالعالم
+  , :hebrew שלום עולם
+  , :russian Привет мир
+  , :special-chars café, naïve, Zürich
+  , :math-symbols ∑∫∂√∞≠≈
+  , :currency €100, £50, ¥1000, ₹500
+  }
+, :keys
+  { :café espresso
+  , :über cool
+  , :naïve simple
+  }
+, :mixed
+  { :name José García
+  , :city São Paulo
+  , :message Hello 你好 🌟
+  , :tags
+    [ 🔥 hot
+    , ⭐ favorite
+    , 💡 idea
+    ]
+  }
+}

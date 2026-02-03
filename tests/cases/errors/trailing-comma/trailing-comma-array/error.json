@@ -1,0 +1,5 @@
+{
+  "type": "SyntaxError",
+  "messagePattern": "(trailing|unexpected).*,",
+  "line": 4
+}

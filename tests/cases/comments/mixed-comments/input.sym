@@ -1,0 +1,26 @@
+/* Header comment
+   explaining the file */
+
+// Variable definitions
+{ $env production }
+
+/* Main configuration object
+   with nested structures */
+{ :app
+  { :name MyService  // The app name
+  , :env $env        // Environment from variable
+  /* Database configuration
+     for production */
+  , :database
+    { :host db.example.com  // Production database
+    , :port 5432
+    , :ssl true  /* SSL required in prod */
+    }
+  // Array of features
+  , :features
+    [ :auth        // Authentication
+    , :logging     /* Structured logging */
+    , :monitoring  // APM monitoring
+    ]
+  }
+}

@@ -1,0 +1,3 @@
+{
+  "description": "Comma separator without newline - should detect inline comma used as separator (not allowed)"
+}

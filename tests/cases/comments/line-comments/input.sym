@@ -1,0 +1,8 @@
+// This is a comment at the start
+{ :name Alice
+// Comment before a field
+, :age 30
+, :active true  // Inline comment after whitespace
+, :url https://example.com   // URL with :// is not a comment
+, :note This is not a comment://but this is
+}

@@ -1,0 +1,5 @@
+{
+  "type": "SyntaxError",
+  "messagePattern": "(empty|invalid|missing).*key",
+  "line": 1
+}

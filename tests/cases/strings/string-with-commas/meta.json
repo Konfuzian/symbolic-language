@@ -1,0 +1,5 @@
+{
+  "description": "Strings containing inline commas should NOT be split. Only newline+comma (`,` at start of new line) separates elements in SYM format.",
+  "category": "strings",
+  "test_type": "parse"
+}

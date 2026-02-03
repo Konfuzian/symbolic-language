@@ -1,0 +1,5 @@
+{
+  "description": "Multiline strings work by accumulating lines until the next separator. Leading whitespace is stripped per line by default, but can be preserved with backslash escape.",
+  "category": "strings",
+  "test_type": "parse"
+}

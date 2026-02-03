@@ -1,0 +1,20 @@
+{ :examples
+  { :symbol-at-start :active
+  , :string-with-colon nginx:alpine
+  , :url https://example.com
+  , :docker-image postgres:14
+  , :status-symbol :running
+  , :status-string running
+  , :escaped-symbol \:not-a-symbol
+  , :array-of-symbols
+    [ :red
+    , :green
+    , :blue
+    ]
+  , :array-of-strings
+    [ red
+    , green
+    , blue
+    ]
+  }
+}

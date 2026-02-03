@@ -1,0 +1,5 @@
+{
+  "type": "VariableError",
+  "messagePattern": "(duplicate|already defined|redefined).*\\$port",
+  "line": 3
+}

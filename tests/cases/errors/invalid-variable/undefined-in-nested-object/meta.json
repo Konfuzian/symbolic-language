@@ -1,0 +1,3 @@
+{
+  "description": "Undefined variable in nested object - should detect $db_port not defined"
+}

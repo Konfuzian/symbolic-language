@@ -1,0 +1,5 @@
+{
+  "name": "Simple Variable",
+  "description": "Basic variable definition and usage - defines a variable in a defs block and references it in the data block",
+  "category": "variables"
+}

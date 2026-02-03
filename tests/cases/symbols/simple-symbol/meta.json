@@ -1,0 +1,5 @@
+{
+  "name": "Simple Symbol Usage",
+  "description": "Basic symbol usage showing symbols as distinct values (like :active, :admin, :debug)",
+  "category": "symbols"
+}

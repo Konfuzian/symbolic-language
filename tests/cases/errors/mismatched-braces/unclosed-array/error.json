@@ -1,0 +1,5 @@
+{
+  "type": "ParseError",
+  "messagePattern": "(unclosed|unexpected end|missing closing|expected.*])",
+  "line": 4
+}

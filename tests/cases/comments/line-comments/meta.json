@@ -1,0 +1,5 @@
+{
+  "name": "Line Comments",
+  "description": "Single line comments using // - at start of line, inline after whitespace, and showing that :// in URLs is not a comment",
+  "category": "comments"
+}

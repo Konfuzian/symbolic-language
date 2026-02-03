@@ -1,0 +1,6 @@
+{
+  "poem": "Roses are red\nViolets are blue\nNo comma-newline here\nSo it's all one value",
+  "description": "This is a multiline description.\nIt can span multiple lines.\nCommas, like this one, are preserved inline.\nLines continue until the next separator.",
+  "code": "def hello():\n    print(\"hello\")\n    return True",
+  "author": "Anonymous"
+}

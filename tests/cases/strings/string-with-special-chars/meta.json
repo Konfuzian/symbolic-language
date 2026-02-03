@@ -1,0 +1,5 @@
+{
+  "description": "Strings can contain various special characters including URLs, paths, unicode, symbols, and punctuation. Mid-string colons, brackets, and other special chars are treated as literals.",
+  "category": "strings",
+  "test_type": "parse"
+}

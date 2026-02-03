@@ -1,0 +1,12 @@
+{
+  "standard-spacing": "normal value",
+  "blank-line-before-field": "works fine",
+  "multiline-value": "Line one with leading spaces\nLine two with leading spaces\nLine three",
+  "preserved-indent": "   This line has preserved indent\n   This one too",
+  "mixed-indent": "Normal stripped indent\n   Preserved indent with backslash\nNormal again",
+  "trailing-spaces-stripped": "value with trailing",
+  "empty-lines-in-multiline": "First line\n\nThird line (blank line above)\n\nFifth line",
+  "compact-object": {
+    "nested": "value, :another one"
+  }
+}

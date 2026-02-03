@@ -1,0 +1,5 @@
+{
+  "name": "Symbols as Enums",
+  "description": "Symbols used as enum-like values in configuration, both as scalar values and in arrays",
+  "category": "symbols"
+}

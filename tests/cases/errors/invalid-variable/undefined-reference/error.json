@@ -1,0 +1,5 @@
+{
+  "type": "VariableError",
+  "messagePattern": "(undefined|unknown|not defined).*\\$user",
+  "line": 1
+}

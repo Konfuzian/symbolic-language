@@ -1,0 +1,18 @@
+{ :config
+  { :log-level :info
+  , :cache-driver :redis
+  , :database-engine :postgres
+  , :allowed-services
+    [ :auth
+    , :api
+    , :cache
+    , :logging
+    ]
+  , :status-codes
+    [ :pending
+    , :processing
+    , :completed
+    , :failed
+    ]
+  }
+}

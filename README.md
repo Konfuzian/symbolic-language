@@ -145,6 +145,41 @@ import SymHighlight from './sym-highlight';
 
 See [parsers/js/](parsers/js/) for details.
 
+## Test Suite
+
+A comprehensive language-agnostic test suite ensures consistency across all parser implementations.
+
+### Running Tests
+
+**Rust:**
+```bash
+cd tests/harness/rust
+./run.sh
+```
+
+**JavaScript:**
+```bash
+cd tests/harness/js
+npm test
+```
+
+**Python:**
+Ready for implementation - see [tests/harness/python/](tests/harness/python/)
+
+### Test Coverage
+
+54 test cases covering:
+- **Basic types** — Objects, arrays, strings, numbers, booleans, null
+- **Strings** — Multiline, special characters, comma handling
+- **Complex structures** — Nested objects/arrays, mixed types
+- **Variables** — Definition, substitution, scoping
+- **Symbols** — Enum-like values, symbol syntax
+- **Comments** — Line and block comments
+- **Edge cases** — Unicode, whitespace handling
+- **Error handling** — 22 invalid input scenarios
+
+See [tests/](tests/) for the complete test suite and [tests/README.md](tests/README.md) for documentation.
+
 ## Examples
 
 The [examples/](examples/) directory contains real-world configurations:

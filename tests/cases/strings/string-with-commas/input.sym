@@ -1,0 +1,9 @@
+// Test that inline commas do NOT split values
+// Only newline+comma separates elements
+
+{ :address 123 Main St, Apt 4, New York, NY 10001
+, :message Hello, world!
+, :list one, two, three
+, :coordinates 40.7128, -74.0060
+, :sentence This, is, a, test, with, many, commas
+}

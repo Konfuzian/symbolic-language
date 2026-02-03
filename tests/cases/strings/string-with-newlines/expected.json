@@ -1,0 +1,8 @@
+{
+  "single-line": "This is a single line",
+  "two-lines": "Line one\nLine two",
+  "three-lines": "First line\nSecond line\nThird line",
+  "with-blank-line": "Before blank\n\nAfter blank",
+  "mixed-content": "Title: Report\nDate: 2024-01-01\nStatus: Complete\nNotes: This has multiple lines\n       with different content",
+  "paragraph": "Lorem ipsum dolor sit amet, consectetur adipiscing elit.\nSed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\nUt enim ad minim veniam, quis nostrud exercitation ullamco."
+}

@@ -1,0 +1,5 @@
+{
+  "type": "VariableError",
+  "messagePattern": "(undefined|unknown|not defined).*(\\$region|\\$zone)",
+  "line": 3
+}

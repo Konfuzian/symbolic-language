@@ -1,0 +1,3 @@
+{
+  "description": "Mixed defs and data keys in same block - should detect block containing both $ and : keys (not allowed)"
+}

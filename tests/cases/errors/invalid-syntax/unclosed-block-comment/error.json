@@ -1,0 +1,5 @@
+{
+  "type": "SyntaxError",
+  "messagePattern": "(unclosed|unterminated).*comment",
+  "line": 2
+}

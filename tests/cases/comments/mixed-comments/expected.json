@@ -1,0 +1,16 @@
+{
+  "app": {
+    "name": "MyService",
+    "env": "production",
+    "database": {
+      "host": "db.example.com",
+      "port": 5432,
+      "ssl": true
+    },
+    "features": [
+      ":auth",
+      ":logging",
+      ":monitoring"
+    ]
+  }
+}

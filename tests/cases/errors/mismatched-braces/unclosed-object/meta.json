@@ -1,0 +1,3 @@
+{
+  "description": "Object missing closing brace - should detect unclosed object at end of file"
+}

@@ -1,0 +1,25 @@
+// Test strings with explicit newlines preserved
+
+{ :single-line This is a single line
+, :two-lines
+    Line one
+    Line two
+, :three-lines
+    First line
+    Second line
+    Third line
+, :with-blank-line
+    Before blank
+
+    After blank
+, :mixed-content
+    Title: Report
+    Date: 2024-01-01
+    Status: Complete
+    Notes: This has multiple lines
+           with different content
+, :paragraph
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+    Ut enim ad minim veniam, quis nostrud exercitation ullamco.
+}

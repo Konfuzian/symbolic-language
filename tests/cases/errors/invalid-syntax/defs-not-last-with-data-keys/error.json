@@ -1,0 +1,5 @@
+{
+  "type": "SyntaxError",
+  "messagePattern": "(mixed|invalid|cannot mix).*variable.*data",
+  "line": 2
+}

@@ -1,0 +1,9 @@
+{
+  "config": {
+    "environment": "production",
+    "server": {
+      "host": "localhost",
+      "port": 8080
+    }
+  }
+}

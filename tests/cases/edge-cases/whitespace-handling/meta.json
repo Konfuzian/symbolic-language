@@ -1,0 +1,5 @@
+{
+  "name": "Whitespace Handling",
+  "description": "Various whitespace scenarios including blank lines, multiline strings, preserved indentation with backslash, and trailing space stripping",
+  "category": "edge-cases"
+}

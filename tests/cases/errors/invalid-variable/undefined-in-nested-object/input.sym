@@ -1,0 +1,8 @@
+{ $host localhost }
+{ :database
+  { :primary
+    { :host $host
+    , :port $db_port
+    }
+  }
+}
